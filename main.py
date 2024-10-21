@@ -100,6 +100,7 @@ def main():
             elif flag == '-x':
                 # Rename registers and print the renamed ILOC
                 ir.rename_registers()
+                # print(max_vr, MAXLIVE)
                 ir.print_renamed_ILOC()
                 
             # Handle Code Check 2: Register Allocation with Spilling if necessary

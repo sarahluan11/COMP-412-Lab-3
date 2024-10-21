@@ -1,6 +1,3 @@
-MAXLIVE = 0
-spill_location = 32768
-
 class Argument:
     def __init__(self, sr = None, pr = None, vr = None, nu = None):
         if sr is not None:
@@ -22,7 +19,6 @@ class Argument:
             self.nu = int(nu)
         else:
             self.nu = None
-        
 
 class ILOCNode:
     def __init__(self, arg1: Argument, arg2: Argument, arg3: Argument, opcode: str):
@@ -44,12 +40,9 @@ class ILOCNode:
         - A string representing the formatted operand.
         """
         if operand is None:
-            # Empty operand slot
             return "[ ]" 
         if isinstance(operand, int) or operand.isdigit():  
-            # Format for constant value
             return f"[ val {operand} ]"
-        # Format for register
         return f"[ s{operand} ]"  
 
     def __str__(self):
@@ -77,7 +70,6 @@ class ILOCNode:
                     max_source_reg = max(arg.sr, max_source_reg)
             
             return max_source_reg
-
 
 class ILOCLinkedList:
     """
@@ -109,25 +101,19 @@ class ILOCLinkedList:
         """
         current = self.head
         while current is not None:
-            # Print the string representation of the current node
             print(current) 
-            # Move to the next node in the list
             current = current.next
     
     def rename_registers(self):
-        global max_reg, MAXLIVE
+        MAXLIVE = 0
         max_reg = self.max_sr() * 2
 
-        # Virtual register naming starts from -1
-        global max_vr
+        # Initializations
         max_vr = -1
-
-        # Mapping from source register to virtual register
         sr_to_vr = [None] * (max_reg + 1) 
-        # Last-use array
         lu = [float('inf')] * (max_reg + 1)
 
-        LIVE = set()
+        live = 0
 
         # Step 1: Traverse the linked list to collect instructions
         instructions = []
@@ -156,7 +142,7 @@ class ILOCLinkedList:
                 if sr_to_vr[sr3] == None:
                     max_vr += 1
                     sr_to_vr[sr3] = max_vr
-                # LIVE.remove(sr3)
+                live -= 1
                 curr_instr.arg3.vr = sr_to_vr[sr3]
                 curr_instr.arg3.nu = lu[sr3]
                 sr_to_vr[sr3] = None
@@ -164,7 +150,7 @@ class ILOCLinkedList:
 
             # Use cases
             if sr1 != None and curr_instr.opcode != "loadI" and curr_instr.opcode != "output":
-                LIVE.add(sr1)
+                live += 1
                 if sr_to_vr[sr1] == None:
                     max_vr += 1
                     sr_to_vr[sr1] = max_vr
@@ -172,7 +158,7 @@ class ILOCLinkedList:
                 curr_instr.arg1.nu = lu[sr1]
 
             if sr2 != None:
-                LIVE.add(sr2)
+                live += 1
                 if sr_to_vr[sr2] == None:
                     max_vr += 1
                     sr_to_vr[sr2] = max_vr
@@ -181,7 +167,7 @@ class ILOCLinkedList:
 
             # Operand 3 for store is always a use case
             if sr3 != None and curr_instr.opcode == "store":
-                LIVE.add(sr3)
+                live += 1
                 if sr_to_vr[sr3] == None:
                     max_vr += 1
                     sr_to_vr[sr3] = max_vr
@@ -198,150 +184,12 @@ class ILOCLinkedList:
                 if curr_instr.opcode == "store":
                     lu[sr3] = idx
             
-            if len(LIVE) > MAXLIVE:
-                MAXLIVE = len(LIVE)
+            if live > MAXLIVE:
+                MAXLIVE = live
 
             idx -= 1
 
-    ## SECTION BELOW IS FOR CODE CHECK 2 ## 
-    def insert_before(self, new_node, existing_node):
-        """
-        Inserts new_node before existing_node in the linked list.
-        """
-        if existing_node.prev is not None:
-            existing_node.prev.next = new_node
-            new_node.prev = existing_node.prev
-        new_node.next = existing_node
-        existing_node.prev = new_node
-        if self.head == existing_node:
-            self.head = new_node
-
-    def allocate_registers(self, k):
-        global max_vr, MAXLIVE, spill_location
-
-        def get_PR(vr, nu):
-            if len(PR_stack) > 0:
-                pr = PR_stack.pop()
-            else:
-                print("test")
-                pr = spill()
-                PR_stack.pop()
-            print("pr", pr)
-            print("VRtoPR", VRtoPR)
-            print("PRtoVR", PRtoVR)
-            print("PRNU", PRNU)
-            print("nu", nu)
-            VRtoPR[vr] = pr
-            PRtoVR[pr] = vr
-            PRNU[pr] = nu
-            return pr
-
-        def free_PR(pr):
-            VRtoPR[PRtoVR[pr]] = None
-            PRtoVR[pr] = None
-            PRNU[pr] = float('inf')
-            PR_stack.append(pr)
-        
-        def spill():
-            global spill_location
-
-            # Pick pr with farthest next use
-            unmarked_indices = [i for i in range(len(PRNU)) if i not in marked]
-
-            pr_to_spill = max(unmarked_indices, key=lambda i: PRNU[i])
-            vr_to_spill = PRtoVR[pr_to_spill]
-
-            # Spill nodes to insert
-            loadI_spill = ILOCNode("loadI", operand1=spill_location, operand3=pr_to_spill) 
-            store_spill = ILOCNode("store", operand1=pr_to_spill, operand3=f"mem{vr_to_spill}") 
-            
-            # Track spillage
-            VRtoSpillLoc[vr_to_spill] = spill_location
-
-            # Insert LOADI and STORE nodes
-            self.insert_before(loadI_spill, curr_node) 
-            self.insert_before(store_spill, curr_node) 
-
-            # Free the spilled PR
-            free_PR(pr_to_spill)
-
-            # Update spill location
-            spill_location += 4
-
-            return pr_to_spill
-    
-        def restore(vr, pr):
-            loadI_restore = ILOCNode("loadI", operand1=VRtoSpillLoc[vr], operand3=pr)
-            load_restore = ILOCNode("load", operand1=f"mem{vr}", operand3=pr) 
-
-            self.insert_before(loadI_restore, curr_node) 
-            self.insert_before(load_restore, curr_node) 
-        
-        # i am confused what this part does
-        spill_reg = None
-        if k < MAXLIVE:
-            print("// RESERVING A REGISTER: k =", k, ", MAXLIVE =", MAXLIVE)
-            spill_reg = k - 1
-            k -= 1
-        
-        VRtoPR = [None] * (max_vr + 1) # VR to PR map (use max_reg + 1 for correct size)
-        PRtoVR = [None] * k # PR to VR map
-        PR_stack = list(range(k - 1, -1, -1)) # Stack of free PRs
-        PRNU = [float('inf')] * k # Next-use array for PRs
-        VRtoSpillLoc = [None for _ in range(max_vr + 1)]
-        marked = [0] * k # Mark array for PRs
-
-        # Iterate through linked list
-        curr_node = self.head
-        while curr_node:
-            for mark in range(len(marked)):
-                marked[mark] = 0
-
-            print("currnode", curr_node)
-            # Allocate PRs for uses (operand 1)
-            if curr_node.operand1 != None:  
-                # print("inside use for op1")
-                pr = VRtoPR[curr_node.operand1]
-                # VR doesn't have a PR, allocate one
-                if pr == None:
-                    curr_node.operand1 = get_PR(curr_node.operand1, curr_node.nu1)
-                    if VRtoSpillLoc[curr_node.operand1] != None:
-                        restore(curr_node.operand1, pr)
-                # Mark PR as used
-                marked[pr] = 1
-                # Update operand to point to PR
-                curr_node.operand1 = pr
-            
-            # Allocate PRs for uses (operand 2)
-            if curr_node.operand2 != None:  
-                # print("inside use for op2")
-                pr = VRtoPR[curr_node.operand2]
-                # VR doesn't have a PR, allocate one
-                if pr == None:
-                    curr_node.operand1 = get_PR(curr_node.operand2, curr_node.nu2)
-                    if VRtoSpillLoc[curr_node.operand2] != None:
-                        restore(curr_node.operand2, pr)
-                # Mark PR as used
-                marked[pr] = 1
-                # Update operand to point to PR
-                curr_node.operand2 = pr
-            
-            # Free PRs if operand1 or operand2 are no longer used (last use)
-            if curr_node.nu1 == float('inf') and VRtoPR[curr_node.operand1] != None:
-                free_PR(curr_node.operand1)
-            if curr_node.nu2 == float('inf') and VRtoPR[curr_node.operand2] != None:
-                free_PR(curr_node.operand2)
-
-            # Allocate PR for operand3 (definition case)
-            if curr_node.operand3 != None:
-                pr = get_PR(curr_node.operand3, curr_node.nu3)
-                # Mark PR as used
-                marked[pr] = 1
-                # Update operand to point to PR
-                curr_node.operand3 = pr  
-       
-            curr_node = curr_node.next
-    ## SECTION ABOVE IS CODE CHECK 2 ## 
+        return max_vr, live
 
     def print_renamed_ILOC(self):
         """

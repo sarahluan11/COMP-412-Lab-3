@@ -1,6 +1,6 @@
 CodeCheck1 on './412alloc' for user sl163
 Using '/tmp/sl163-code-check-1' for temporary storage
-Run on 10-21-24 at 16:13:07 on host cobalt.clear.rice.edu
+Run on 10-21-24 at 16:41:01 on host cobalt.clear.rice.edu
 Changing directory to '.'.
 
 Testing 'cc1.i'	 correct in 21 cycles
