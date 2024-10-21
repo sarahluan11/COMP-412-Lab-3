@@ -1,0 +1,16 @@
+CodeCheck1 on '/storage-home/s/sl163/comp412_lab2/412alloc' for user sl163
+Using '/tmp/sl163-code-check-1' for temporary storage
+Run on 10-21-24 at 14:55:04 on host cobalt.clear.rice.edu
+Changing directory to '/storage-home/s/sl163/comp412_lab2'.
+
+Testing 'cc1.i'-->	incorrect results
+Testing 'cc2.i'-->	incorrect results
+Testing 'cc3.i'-->	incorrect results
+Testing 'cc4.i'-->	incorrect results
+Testing 'cc5.i'-->	incorrect results
+
+./412alloc Fails Code Check 1
+
+Removing /tmp/sl163-code-check-1
+
+Code Check 1 script exits normally.
