@@ -22,7 +22,6 @@ class Allocator:
         self.PRStack = list(range(k - 1, -1, -1))
         self.next_spill_location = 32768
         self.spill_reg = k
-
         self.mark = -1
 
     def insert_before(self, new_node, existing_node):
@@ -61,19 +60,23 @@ class Allocator:
         self.PRToNU[pr] = float('inf')
         self.PRStack.append(pr)
 
-    def spill(self):
+    def spill(self, vr):
+        """
+        Spill the physical register (PR) assigned to a virtual register (VR) with the farthest next use.
+        Insert the necessary load and store instructions to spill and free the register.
+        """
         # Pick pr with farthest next use
-        unmarked_indices = [i for i in range(len(self.PRNU)) if i not in self.mark]
+        unmarked_indices = [i for i in range(len(self.PRToNU)) if self.mark != i]
 
-        pr_to_spill = max(unmarked_indices, key=lambda i: self.PRNU[i])
-        vr_to_spill = self.PRtoVR[pr_to_spill]
+        pr_to_spill = max(unmarked_indices, key=lambda i: self.PRToNU[i])
+        vr_to_spill = self.PRToVR[pr_to_spill]
 
         # Spill nodes to insert
-        loadI_spill = ILOCNode("loadI", operand1=spill_location, operand3=pr_to_spill) 
-        store_spill = ILOCNode("store", operand1=pr_to_spill, operand3=f"mem{vr_to_spill}") 
+        loadI_spill = ILOCNode(Argument(constant=self.next_spill_location), Argument(), Argument(pr_to_spill), "loadI")
+        store_spill = ILOCNode(Argument(pr_to_spill), Argument(), Argument(f"mem{vr_to_spill}"), "store")
         
         # Track spillage
-        self.VRtoSpillLoc[vr_to_spill] = spill_location
+        self.VRToSpillLoc[vr_to_spill] = self.spill_location
 
         # Insert LOADI and STORE nodes
         self.insert_before(loadI_spill, self.curr_node) 
@@ -112,8 +115,8 @@ class Allocator:
         # Iterate through linked list of instructions
         self.curr_node = self.int_rep.head
         while self.curr_node:
-            for mark in range(len(mark)):
-                mark[mark] = 0
+             # Reset the flag for each instruction
+            self.mark = -1 
 
             # Allocate PRs for uses (arg1)
             if self.curr_node.arg1.sr != None:  
@@ -122,17 +125,17 @@ class Allocator:
                     self.curr_node.arg1.sr = self.get_PR(self.curr_node.arg1.sr, self.curr_node.arg1.nu)
                     if self.VRToSpillLoc[self.curr_node.arg1.sr] != -1:
                         self.restore(self.curr_node.arg1.sr, pr)
-                self.mark[pr] = 1
+                self.mark = 1
                 self.curr_node.arg1.pr = pr
             
             # Allocate PRs for uses (arg 2)
             if self.curr_node.arg2.sr != None:  
                 pr = self.VRToPR[self.curr_node.arg2.sr]
-                if pr == None:
+                if pr == -1:
                     self.curr_node.arg2.sr = self.get_PR(self.curr_node.arg2.sr, self.curr_node.arg2.nu)
                     if self.VRToSpillLoc[self.curr_node.arg2.sr] != -1:
                         self.restore(self.curr_node.arg2.sr, pr)
-                self.mark[pr] = 1
+                self.mark = 1
                 self.curr_node.arg2.sr = pr
             
             # Free PRs if arg1 and arg2 are no longer used (last use)
@@ -144,7 +147,50 @@ class Allocator:
             # Allocate PR for arg3 (definition case)
             if self.curr_node.arg3.sr != None:
                 pr = self.get_PR(self.curr_node.arg3.sr, self.curr_node.arg3.nu)
-                self.mark[pr] = 1
+                self.mark = 1
                 self.curr_node.arg3.sr = pr  
        
-            curr_node = curr_node.next
+            self.curr_node = self.curr_node.next
+    
+    # def check_mappings(self):
+    #     """
+    #     Checks the consistency of the allocator's internal mappings.
+    #     Raises an exception if any inconsistency is found.
+    #     """
+    #     # Check VRToPR mapping for consistency
+    #     for vr in range(len(self.VRToPR)):
+    #         pr = self.VRToPR[vr]
+    #         if pr != INVALID:
+    #             if self.PRToVR[pr] != vr:
+    #                 raise ValueError(f"Inconsistency: VRToPR[{vr}] = {pr}, but PRToVR[{pr}] = {self.PRToVR[pr]}")
+    #             if pr in self.PRStack:
+    #                 raise ValueError(f"Physical register r{pr} assigned to vr{vr} is in PRStack")
+    #             if pr == self.spill_reg:
+    #                 raise ValueError(f"Physical register r{pr} assigned to vr{vr} is the reserved spill register")
+    #         else:
+    #             if vr in self.PRToVR:
+    #                 raise ValueError(f"VRToPR[{vr}] = INVALID, but VR is present in PRToVR")
+
+    #     # Check PRToVR mapping for consistency
+    #     for pr in range(len(self.PRToVR)):
+    #         vr = self.PRToVR[pr]
+    #         if vr != INVALID:
+    #             if self.VRToPR[vr] != pr:
+    #                 raise ValueError(f"Inconsistency: PRToVR[{pr}] = {vr}, but VRToPR[{vr}] = {self.VRToPR[vr]}")
+    #             if pr in self.PRStack:
+    #                 raise ValueError(f"Physical register r{pr} assigned to vr{vr} is in PRStack")
+    #             if pr == self.spill_reg:
+    #                 raise ValueError(f"Physical register r{pr} assigned to vr{vr} is the reserved spill register")
+    #         else:
+    #             if pr not in self.PRStack and pr != self.spill_reg:
+    #                 raise ValueError(f"Physical register r{pr} is not mapped or in PRStack or reserved as spill register")
+
+    #     # Check PRStack for correctness
+    #     for pr in self.PRStack:
+    #         if self.PRToVR[pr] != INVALID:
+    #             raise ValueError(f"Physical register r{pr} in PRStack is mapped to vr{self.PRToVR[pr]}")
+
+    #     # Check that no VR is assigned to the spill register
+    #     for vr in range(len(self.VRToPR)):
+    #         if self.VRToPR[vr] == self.spill_reg:
+    #             raise ValueError(f"Virtual register vr{vr} is assigned to the spill register r{self.spill_reg}")

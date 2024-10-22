@@ -1,4 +1,5 @@
 import sys
+from allocator import Allocator
 from scanner import scan, category_names, EOF
 from parser_1 import parse, errors, print_ir
 from iloc_ir import ILOCLinkedList
@@ -105,12 +106,19 @@ def main():
                 
             # Handle Code Check 2: Register Allocation with Spilling if necessary
             elif num_registers:
-                print(f"Allocating with {num_registers} registers...")
+                num_registers = int(sys.argv[1])  # Number of registers passed from command-line
+                filepath = sys.argv[2]  # Filepath passed from the command-line
                 
-                # Perform register allocation with `num_registers` physical registers.
-                ir.rename_registers()
-                ir.allocate_registers(num_registers)
-                ir.print_renamed_ILOC()
+                print(f"Allocating with {num_registers} registers...")
+
+                # Create an instance of Allocator with the number of registers and the input file path
+                allocator = Allocator(num_registers, filepath)
+
+                # Perform register allocation
+                allocator.allocate_registers(num_registers)
+
+                # Print the renamed ILOC instructions
+                allocator.int_rep.print_renamed_ILOC()
 
             # If no valid flag or number of registers is provided, show an error
             else:
