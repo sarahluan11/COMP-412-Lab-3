@@ -1,4 +1,4 @@
-from iloc_ir import ILOCNode
+from iloc_ir import Argument, ILOCNode
 from parser_1 import parse
 
 class Allocator:
@@ -13,7 +13,6 @@ class Allocator:
         res = result.rename_registers()
 
         self.int_rep = result
-
         self.MAXLIVE = res[1]
         self.vr_count = res[0]
         self.VRToSpillLoc = [-1 for _ in range(self.vr_count + 1)]
@@ -27,30 +26,40 @@ class Allocator:
         self.mark = -1
 
     def insert_before(self, new_node, existing_node):
+        """
+        Inserts new_node before existing_node in the linked list.
+        """
         if existing_node.prev is not None:
             existing_node.prev.next = new_node
             new_node.prev = existing_node.prev
         new_node.next = existing_node
         existing_node.prev = new_node
-        if self.head == existing_node:
-            self.head = new_node
+        if self.int_rep.head == existing_node:
+            self.int_rep.head = new_node
 
     def get_PR(self, vr, nu):
-        if len(self.PR_stack) > 0:
-            pr = self.PR_stack.pop()
+        """
+        Get a physical register (PR) for the given virtual register (VR).
+        If there are no free PRs, spill one.
+        """
+        if len(self.PRStack) > 0:
+            pr = self.PRStack.pop()
         else:
             pr = self.spill()
-            self.PR_stack.pop()
-        self.VRtoPR[vr] = pr
-        self.PRtoVR[pr] = vr
-        self.PRNU[pr] = nu
+            self.PRStack.pop()
+        self.VRToPR[vr] = pr
+        self.PRToVR[pr] = vr
+        self.PRToNU[pr] = nu
         return pr
 
     def free_PR(self, pr):
-        self.VRtoPR[self.PRtoVR[pr]] = None
-        self.PRtoVR[pr] = None
-        self.PRNU[pr] = float('inf')
-        self.PR_stack.append(pr)
+        """
+        Free a physical register (PR) and make it available for reuse.
+        """
+        self.VRToPR[self.PRToVR[pr]] = -1
+        self.PRToVR[pr] = -1
+        self.PRToNU[pr] = float('inf')
+        self.PRStack.append(pr)
 
     def spill(self):
         # Pick pr with farthest next use
@@ -79,64 +88,63 @@ class Allocator:
         return pr_to_spill
 
     def restore(self, vr, pr):
-        loadI_restore = ILOCNode("loadI", operand1=self.VRtoSpillLoc[vr], operand3=pr)
-        load_restore = ILOCNode("load", operand1=f"mem{vr}", operand3=pr) 
+        """
+        Restore a spilled virtual register (VR) into a physical register (PR).
+        Insert the necessary load instructions to restore the spilled value.
+        """
+        loadI_restore = ILOCNode(Argument(self.VRToSpillLoc[vr]), Argument(), Argument(pr), "loadI")
+        load_restore = ILOCNode(Argument(f"mem{vr}"), Argument(), Argument(pr), "load")
 
+        # Insert the LOADI and LOAD instructions before the current node
         self.insert_before(loadI_restore, self.curr_node) 
         self.insert_before(load_restore, self.curr_node) 
     
     def allocate_registers(self, k):
+        """
+        Allocate physical registers (PR) for the virtual registers (VR) in the instruction stream.
+        If the number of registers (k) is less than MAXLIVE, reserve one register for spilling.
+        """
         if k < self.MAXLIVE:
             print("// RESERVING A REGISTER: k =", k, ", MAXLIVE =", self.MAXLIVE)
             self.spill_reg = k - 1
             k -= 1
 
-        # Iterate through linked list
-        curr_node = self.head
-        while curr_node:
+        # Iterate through linked list of instructions
+        self.curr_node = self.int_rep.head
+        while self.curr_node:
             for mark in range(len(mark)):
                 mark[mark] = 0
 
-            # Allocate PRs for uses (operand 1)
-            if curr_node.operand1 != None:  
-                # print("inside use for op1")
-                pr = self.VRtoPR[curr_node.operand1]
-                # VR doesn't have a PR, allocate one
-                if pr == None:
-                    curr_node.operand1 = self.get_PR(curr_node.operand1, curr_node.nu1)
-                    if self.VRtoSpillLoc[curr_node.operand1] != None:
-                        self.restore(curr_node.operand1, pr)
-                # Mark PR as used
+            # Allocate PRs for uses (arg1)
+            if self.curr_node.arg1.sr != None:  
+                pr = self.VRToPR[self.curr_node.arg1.sr]
+                if pr == -1: 
+                    self.curr_node.arg1.sr = self.get_PR(self.curr_node.arg1.sr, self.curr_node.arg1.nu)
+                    if self.VRToSpillLoc[self.curr_node.arg1.sr] != -1:
+                        self.restore(self.curr_node.arg1.sr, pr)
                 self.mark[pr] = 1
-                # Update operand to point to PR
-                curr_node.operand1 = pr
+                self.curr_node.arg1.pr = pr
             
-            # Allocate PRs for uses (operand 2)
-            if curr_node.operand2 != None:  
-                # print("inside use for op2")
-                pr = self.VRtoPR[curr_node.operand2]
-                # VR doesn't have a PR, allocate one
+            # Allocate PRs for uses (arg 2)
+            if self.curr_node.arg2.sr != None:  
+                pr = self.VRToPR[self.curr_node.arg2.sr]
                 if pr == None:
-                    curr_node.operand1 = self.get_PR(curr_node.operand2, curr_node.nu2)
-                    if self.VRtoSpillLoc[curr_node.operand2] != None:
-                        self.estore(curr_node.operand2, pr)
-                # Mark PR as used
+                    self.curr_node.arg2.sr = self.get_PR(self.curr_node.arg2.sr, self.curr_node.arg2.nu)
+                    if self.VRToSpillLoc[self.curr_node.arg2.sr] != -1:
+                        self.restore(self.curr_node.arg2.sr, pr)
                 self.mark[pr] = 1
-                # Update operand to point to PR
-                curr_node.operand2 = pr
+                self.curr_node.arg2.sr = pr
             
-            # Free PRs if operand1 or operand2 are no longer used (last use)
-            if curr_node.nu1 == float('inf') and self.VRtoPR[curr_node.operand1] != None:
-                self.free_PR(curr_node.operand1)
-            if curr_node.nu2 == float('inf') and self.VRtoPR[curr_node.operand2] != None:
-                self.free_PR(curr_node.operand2)
+            # Free PRs if arg1 and arg2 are no longer used (last use)
+            if self.curr_node.arg1.nu == float('inf') and self.VRToPR[self.curr_node.arg1.sr] != None:
+                self.free_PR(self.curr_node.arg1.sr)
+            if self.curr_node.arg2.nu == float('inf') and self.VRToPR[self.curr_node.arg2.sr] != None:
+                self.free_PR(self.curr_node.arg2.sr)
 
-            # Allocate PR for operand3 (definition case)
-            if curr_node.operand3 != None:
-                pr = self.get_PR(curr_node.operand3, curr_node.nu3)
-                # Mark PR as used
+            # Allocate PR for arg3 (definition case)
+            if self.curr_node.arg3.sr != None:
+                pr = self.get_PR(self.curr_node.arg3.sr, self.curr_node.arg3.nu)
                 self.mark[pr] = 1
-                # Update operand to point to PR
-                curr_node.operand3 = pr  
+                self.curr_node.arg3.sr = pr  
        
             curr_node = curr_node.next

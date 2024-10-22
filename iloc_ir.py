@@ -1,26 +1,53 @@
 class Argument:
+    """
+    Represents an argument in an ILOC instruction, which could be a source register (sr), 
+    physical register (pr), virtual register (vr), or next-use information (nu).
+    
+    Attributes:
+    - sr (int): Source register.
+    - pr (int): Physical register.
+    - vr (int): Virtual register.
+    - nu (int): Next-use information for register allocation.
+    """
     def __init__(self, sr = None, pr = None, vr = None, nu = None):
+        # Initialize the source register (sr)
         if sr is not None:
             self.sr = int(sr)
         else:
             self.sr = None
         
+        # Initialize the physical register (pr)
         if pr is not None:
             self.pr = int(pr)
         else:
             self.pr = None
         
+        # Initialize the virtual register (vr)
         if vr is not None:
             self.vr = int(vr)
         else:
             self.vr = None 
         
+        # Initialize the next-use (nu) value for register allocation
         if nu is not None:
             self.nu = int(nu)
         else:
             self.nu = None
 
 class ILOCNode:
+    """
+    Represents a node in the Intermediate Representation (IR) linked list.
+    
+    Each node corresponds to an ILOC instruction and has three arguments (arg1, arg2, arg3).
+    
+    Attributes:
+    - arg1 (Argument): The first operand (could be source or destination).
+    - arg2 (Argument): The second operand (optional).
+    - arg3 (Argument): The third operand (destination or store source).
+    - opcode (str): The ILOC operation code (e.g., "load", "add").
+    - prev (ILOCNode): The previous node in the linked list.
+    - next (ILOCNode): The next node in the linked list.
+    """
     def __init__(self, arg1: Argument, arg2: Argument, arg3: Argument, opcode: str):
         self.arg1 = arg1
         self.arg2 = arg2
@@ -55,15 +82,25 @@ class ILOCNode:
         return f"{self.opcode.ljust(8)}{self.format_operand(self.arg1.sr)}, {self.format_operand(self.arg2.sr)}, {self.format_operand(self.arg3.sr)}"
     
     def max_sr(self):
+        """
+        Determines the maximum source register (sr) used by the node. 
+        
+        This is used to help in register allocation by knowing how many registers are involved.
+
+        Returns:
+        - The maximum source register used in the instruction.
+        """
         args = [self.arg1, self.arg2, self.arg3]
 
         if self.opcode == "nop":
             return 0
 
         elif self.opcode == "loadI":
+            # For loadI, we are only concerned with the destination register
             return args[2].sr 
 
         else:
+            # Find the highest source register (sr) used in the instruction
             max_source_reg = 0
             for arg in args:
                 if arg.sr is not None:
@@ -87,6 +124,12 @@ class ILOCLinkedList:
         self.tail = None
 
     def add_instruction(self, node: ILOCNode):
+        """
+        Adds a new instruction node to the end of the linked list.
+        
+        Inputs:
+        - node (ILOCNode): The instruction node to add.
+        """
         if self.tail is None:
             self.head = self.tail = node
         else:
@@ -104,8 +147,31 @@ class ILOCLinkedList:
             print(current) 
             current = current.next
     
+    def max_sr(self):
+        """
+        Returns the maximum source register (sr) used in the entire linked list.
+        This is used for register allocation purposes.
+        """
+        node = self.head
+        max_sr = 0
+
+        while node:
+            max_sr = max(max_sr, node.max_sr())
+            node = node.next
+        
+        return max_sr
+    
     def rename_registers(self):
+        """
+        Renames virtual registers (VR) to optimize register allocation using a next-use analysis.
+        
+        Returns:
+        - max_vr (int): The highest virtual register used.
+        - live (int): The maximum number of live registers during the renaming process.
+        """
+        # Tracks MAXLIVE value
         MAXLIVE = 0
+        # Assume 2x source registers for safety
         max_reg = self.max_sr() * 2
 
         # Initializations
@@ -113,6 +179,7 @@ class ILOCLinkedList:
         sr_to_vr = [None] * (max_reg + 1) 
         lu = [float('inf')] * (max_reg + 1)
 
+        # Track live registers
         live = 0
 
         # Step 1: Traverse the linked list to collect instructions
@@ -210,14 +277,4 @@ class ILOCLinkedList:
             elif curr.opcode == 'nop':
                 print(f"nop")
             curr = curr.next
-    
-    def max_sr(self):
-        node = self.head
-        max_sr = 0
-
-        while node:
-            max_sr = max(max_sr, node.max_sr())
-            node = node.next
-        
-        return max_sr
 
