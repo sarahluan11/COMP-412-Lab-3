@@ -1,0 +1,33 @@
+==================================================
+Running lab2_ref to establish effectiveness baselines
+Lab 2 Autograder: Using blocks in ./auto_grade/blocks/
+
+==================================================
+Name: Sarah Luan	NetID: sl163	Date From Files:  2024-10-22
+
+------------------------------------------------------------
+Output from building executable, if necessary
+--- built executable; should be ready to run ---
+
+-----------------------------------------------------------
+
+
+Result is a set of (k, cycle) pairs for each test block
+
+T001k.i:	{3: 6949, 4: 6534, 5: 6204, 6: 5874, 8: 5214, 12: 3918, 16: 2622}
+report1.i:	{3: 301, 4: 232, 5: 186, 6: 154, 8: 116, 12: 84, 16: 60}
+report2.i:	{3: 328, 4: 194, 5: 128, 6: 118, 8: 104, 12: 80, 16: 56}
+report3.i:	{3: 429, 4: 350, 5: 298, 6: 260, 8: 217, 12: 155, 16: 118}
+report4.i:	{3: 277, 4: 264, 5: 252, 6: 240, 8: 216, 12: 168, 16: 120}
+report5.i:	{3: 138, 4: 114, 5: 86, 6: 68, 8: 48, 12: 30, 16: 30}
+report6.i:	{3: 482, 4: 402, 5: 341, 6: 281, 8: 223, 12: 177, 16: 137}
+report7.i:	{3: 201, 4: 154, 5: 127, 6: 112, 8: 77, 12: 55, 16: 44}
+
+Correctness points:  	30.0
+Effectiveness points:	11.99
+
+Finished submission  sl163.tar
+==================================================
+
+Grading run complete.
+

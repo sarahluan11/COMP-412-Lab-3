@@ -3,6 +3,29 @@ from allocator import Allocator
 from scanner import scan, category_names, EOF
 from parser_1 import parse, errors, print_ir
 from iloc_ir import ILOCLinkedList
+from contextlib import redirect_stdout
+import os 
+
+"""
+Simulator usage:
+    /clear/courses/comp412/students/lab2/sim < logs/cc1.i
+    /clear/courses/comp412/students/lab2/sim -i 0 1 2 3 4 5 6 7 8 9 10 < logs/cc2.i
+    /clear/courses/comp412/students/lab2/sim  -i 2048 0 1 2 3 4 5 6 7 8 9 < logs/report6.i
+
+Codecheck 2:
+    ./CodeChecks/CodeCheck2 ./412alloc
+
+Debugging:
+    ./412alloc 16 /storage-home/s/sl163/comp412_lab2/grading/auto_grade/blocks/report6.i
+"""
+
+def get_log_name(input_path):
+    base_name = os.path.splitext(os.path.basename(input_path))[0]
+    log_file = f"{base_name}.i"
+
+    log_dir = "logs"
+    os.makedirs(log_dir, exist_ok=True)
+    return os.path.join(log_dir, log_file)
 
 def print_help():
     help_message = """
@@ -109,17 +132,20 @@ def main():
                 num_registers = int(sys.argv[1])  # Number of registers passed from command-line
                 filepath = sys.argv[2]  # Filepath passed from the command-line
                 
-                print(f"Allocating with {num_registers} registers...")
-
                 # Create an instance of Allocator with the number of registers and the input file path
-                allocator = Allocator(num_registers, filepath)
+                allocator = Allocator(num_registers, ir)
 
                 # Perform register allocation
-                allocator.allocate_registers(num_registers)
+                allocator.allocate_registers()
 
                 # Print the renamed ILOC instructions
-                allocator.int_rep.print_renamed_ILOC()
-
+                # allocator.int_rep.print_renamed_ILOC()
+                """
+                # Redirect the stdout to a log file for testing purposes
+                with open(get_log_name(filepath), 'w') as log_file:
+                    with redirect_stdout(log_file):
+                        allocator.int_rep.print_renamed_ILOC()
+                """
             # If no valid flag or number of registers is provided, show an error
             else:
                 print("ERROR: No valid flag or number of registers provided. Try '-h' for help.")
