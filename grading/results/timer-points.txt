@@ -1,0 +1,5 @@
+Lab 2 Autotimer Results
+Import into Excel with tab separators
+
+NetId	Name	T1k	T2k	T4k	T8k	T16k	T32k	T64k	T128k	Lang.	Scaling Pts	Eff Pts %
+sl163	Sarah Luan	0.1833	0.2364	0.3491	0.4963	1.3971	2.4381	4.2561	8.3168	python 	 linear-w-1-jump anomaly	10.0	9.74	*

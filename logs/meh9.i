@@ -1,0 +1,36 @@
+loadI	 4 => r0
+loadI	 2000 => r1
+load	 r1 => r2
+add	 r1, r0 => r1
+load	 r1 => r3
+add	 r2, r3 => r3
+add	 r1, r0 => r1
+load	 r1 => r2
+add	 r3, r2 => r2
+add	 r1, r0 => r1
+load	 r1 => r3
+add	 r2, r3 => r3
+add	 r1, r0 => r1
+load	 r1 => r2
+add	 r3, r2 => r2
+loadI	 2040 => r3
+store	 r2 => r3
+output	 2040
+add	 r1, r0 => r1
+load	 r1 => r3
+add	 r2, r3 => r3
+add	 r1, r0 => r1
+load	 r1 => r2
+add	 r3, r2 => r2
+add	 r1, r0 => r1
+load	 r1 => r3
+add	 r2, r3 => r3
+add	 r1, r0 => r1
+load	 r1 => r2
+add	 r3, r2 => r2
+add	 r1, r0 => r0
+load	 r0 => r0
+add	 r2, r0 => r0
+loadI	 2044 => r2
+store	 r0 => r2
+output	 2044

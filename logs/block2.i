@@ -1,0 +1,57 @@
+loadI	 2 => r0
+loadI	 1024 => r1
+store	 r0 => r1
+loadI	 3 => r1
+loadI	 1028 => r0
+store	 r1 => r0
+loadI	 5 => r0
+loadI	 1032 => r1
+store	 r0 => r1
+loadI	 2048 => r1
+store	 r0 => r1
+loadI	 6 => r1
+loadI	 4104 => r0
+store	 r1 => r0
+loadI	 1 => r0
+loadI	 8192 => r1
+store	 r0 => r1
+loadI	 2 => r1
+loadI	 1024 => r0
+load	 r0 => r2
+sub	 r2, r1 => r1
+loadI	 4 => r3
+mult	 r1, r3 => r1
+loadI	 2048 => r4
+add	 r1, r4 => r4
+load	 r4 => r4
+loadI	 1 => r1
+loadI	 1028 => r5
+load	 r5 => r6
+sub	 r6, r1 => r1
+mult	 r1, r3 => r1
+loadI	 4096 => r7
+add	 r1, r7 => r7
+load	 r7 => r7
+loadI	 8192 => r1
+load	 r1 => r1
+mult	 r1, r4 => r4
+add	 r7, r4 => r4
+loadI	 3 => r7
+loadI	 1032 => r1
+load	 r1 => r8
+sub	 r8, r7 => r7
+mult	 r7, r3 => r3
+loadI	 16384 => r7
+add	 r3, r7 => r7
+store	 r4 => r7
+loadI	 1 => r7
+add	 r2, r7 => r2
+store	 r2 => r0
+add	 r6, r7 => r6
+store	 r6 => r5
+add	 r8, r7 => r7
+store	 r7 => r1
+output	 1024
+output	 1028
+output	 1032
+output	 16392

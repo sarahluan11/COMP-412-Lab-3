@@ -1,0 +1,24 @@
+loadI	 2000 => r0
+loadI	 4 => r1
+load	 r0 => r2
+add	 r1, r0 => r0
+load	 r0 => r3
+add	 r1, r0 => r0
+load	 r0 => r4
+add	 r1, r0 => r0
+load	 r0 => r5
+add	 r1, r0 => r0
+load	 r0 => r0
+add	 r2, r0 => r1
+mult	 r3, r1 => r6
+mult	 r0, r6 => r6
+add	 r2, r1 => r1
+mult	 r3, r1 => r1
+add	 r6, r1 => r1
+mult	 r3, r1 => r1
+mult	 r3, r1 => r1
+loadI	 1020 => r3
+loadI	 4 => r6
+add	 r3, r6 => r6
+store	 r1 => r6
+output	 1024

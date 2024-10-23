@@ -1,0 +1,20 @@
+loadI	 1 => r0
+loadI	 2 => r1
+loadI	 3 => r2
+loadI	 4 => r3
+loadI	 5 => r4
+add	 r0, r1 => r1
+add	 r1, r2 => r2
+add	 r2, r3 => r3
+add	 r3, r4 => r4
+loadI	 6 => r3
+loadI	 7 => r2
+loadI	 8 => r1
+loadI	 9 => r0
+add	 r4, r3 => r3
+add	 r3, r2 => r2
+add	 r2, r1 => r1
+add	 r1, r0 => r0
+loadI	 1024 => r1
+store	 r0 => r1
+output	 1024

@@ -1,0 +1,19 @@
+loadI	 2048 => r0
+loadI	 2052 => r1
+load	 r0 => r2
+load	 r1 => r1
+sub	 r1, r2 => r3
+sub	 r3, r2 => r4
+sub	 r4, r2 => r5
+sub	 r5, r2 => r6
+sub	 r6, r2 => r7
+sub	 r7, r2 => r8
+mult	 r2, r5 => r5
+mult	 r1, r6 => r6
+mult	 r3, r7 => r7
+mult	 r4, r8 => r8
+mult	 r5, r6 => r6
+mult	 r7, r8 => r8
+mult	 r6, r8 => r8
+store	 r8 => r0
+output	 2048

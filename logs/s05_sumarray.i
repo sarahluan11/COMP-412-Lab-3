@@ -1,0 +1,19 @@
+loadI	 3000 => r0
+loadI	 1024 => r1
+load	 r1 => r1
+loadI	 1028 => r2
+load	 r2 => r2
+loadI	 1032 => r3
+load	 r3 => r3
+loadI	 1036 => r4
+load	 r4 => r4
+loadI	 1040 => r5
+load	 r5 => r5
+loadI	 0 => r6
+add	 r1, r6 => r6
+add	 r2, r6 => r6
+add	 r3, r6 => r6
+add	 r4, r6 => r6
+add	 r5, r6 => r6
+store	 r6 => r0
+output	 3000

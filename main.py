@@ -139,13 +139,13 @@ def main():
                 allocator.allocate_registers()
 
                 # Print the renamed ILOC instructions
-                # allocator.int_rep.print_renamed_ILOC()
-                """
+                allocator.int_rep.print_renamed_ILOC()
+                
                 # Redirect the stdout to a log file for testing purposes
                 with open(get_log_name(filepath), 'w') as log_file:
                     with redirect_stdout(log_file):
                         allocator.int_rep.print_renamed_ILOC()
-                """
+            
             # If no valid flag or number of registers is provided, show an error
             else:
                 print("ERROR: No valid flag or number of registers provided. Try '-h' for help.")
