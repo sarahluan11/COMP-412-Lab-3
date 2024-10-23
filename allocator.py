@@ -152,45 +152,45 @@ class Allocator:
        
             self.curr_node = self.curr_node.next
     
-    # def check_mappings(self):
-    #     """
-    #     Checks the consistency of the allocator's internal mappings.
-    #     Raises an exception if any inconsistency is found.
-    #     """
-    #     # Check VRToPR mapping for consistency
-    #     for vr in range(len(self.VRToPR)):
-    #         pr = self.VRToPR[vr]
-    #         if pr != INVALID:
-    #             if self.PRToVR[pr] != vr:
-    #                 raise ValueError(f"Inconsistency: VRToPR[{vr}] = {pr}, but PRToVR[{pr}] = {self.PRToVR[pr]}")
-    #             if pr in self.PRStack:
-    #                 raise ValueError(f"Physical register r{pr} assigned to vr{vr} is in PRStack")
-    #             if pr == self.spill_reg:
-    #                 raise ValueError(f"Physical register r{pr} assigned to vr{vr} is the reserved spill register")
-    #         else:
-    #             if vr in self.PRToVR:
-    #                 raise ValueError(f"VRToPR[{vr}] = INVALID, but VR is present in PRToVR")
+    def check_mappings(self):
+        """
+        Checks the consistency of the allocator's internal mappings.
+        Raises an exception if any inconsistency is found.
+        """
+        # Check VRToPR mapping for consistency
+        for vr in range(len(self.VRToPR)):
+            pr = self.VRToPR[vr]
+            if pr != -1:
+                if self.PRToVR[pr] != vr:
+                    raise ValueError(f"Inconsistency: VRToPR[{vr}] = {pr}, but PRToVR[{pr}] = {self.PRToVR[pr]}")
+                if pr in self.PRStack:
+                    raise ValueError(f"Physical register r{pr} assigned to vr{vr} is in PRStack")
+                if pr == self.spill_reg:
+                    raise ValueError(f"Physical register r{pr} assigned to vr{vr} is the reserved spill register")
+            else:
+                if vr in self.PRToVR:
+                    raise ValueError(f"VRToPR[{vr}] = INVALID, but VR is present in PRToVR")
 
-    #     # Check PRToVR mapping for consistency
-    #     for pr in range(len(self.PRToVR)):
-    #         vr = self.PRToVR[pr]
-    #         if vr != INVALID:
-    #             if self.VRToPR[vr] != pr:
-    #                 raise ValueError(f"Inconsistency: PRToVR[{pr}] = {vr}, but VRToPR[{vr}] = {self.VRToPR[vr]}")
-    #             if pr in self.PRStack:
-    #                 raise ValueError(f"Physical register r{pr} assigned to vr{vr} is in PRStack")
-    #             if pr == self.spill_reg:
-    #                 raise ValueError(f"Physical register r{pr} assigned to vr{vr} is the reserved spill register")
-    #         else:
-    #             if pr not in self.PRStack and pr != self.spill_reg:
-    #                 raise ValueError(f"Physical register r{pr} is not mapped or in PRStack or reserved as spill register")
+        # Check PRToVR mapping for consistency
+        for pr in range(len(self.PRToVR)):
+            vr = self.PRToVR[pr]
+            if vr != -1:
+                if self.VRToPR[vr] != pr:
+                    raise ValueError(f"Inconsistency: PRToVR[{pr}] = {vr}, but VRToPR[{vr}] = {self.VRToPR[vr]}")
+                if pr in self.PRStack:
+                    raise ValueError(f"Physical register r{pr} assigned to vr{vr} is in PRStack")
+                if pr == self.spill_reg:
+                    raise ValueError(f"Physical register r{pr} assigned to vr{vr} is the reserved spill register")
+            else:
+                if pr not in self.PRStack and pr != self.spill_reg:
+                    raise ValueError(f"Physical register r{pr} is not mapped or in PRStack or reserved as spill register")
 
-    #     # Check PRStack for correctness
-    #     for pr in self.PRStack:
-    #         if self.PRToVR[pr] != INVALID:
-    #             raise ValueError(f"Physical register r{pr} in PRStack is mapped to vr{self.PRToVR[pr]}")
+        # Check PRStack for correctness
+        for pr in self.PRStack:
+            if self.PRToVR[pr] != -1:
+                raise ValueError(f"Physical register r{pr} in PRStack is mapped to vr{self.PRToVR[pr]}")
 
-    #     # Check that no VR is assigned to the spill register
-    #     for vr in range(len(self.VRToPR)):
-    #         if self.VRToPR[vr] == self.spill_reg:
-    #             raise ValueError(f"Virtual register vr{vr} is assigned to the spill register r{self.spill_reg}")
+        # Check that no VR is assigned to the spill register
+        for vr in range(len(self.VRToPR)):
+            if self.VRToPR[vr] == self.spill_reg:
+                raise ValueError(f"Virtual register vr{vr} is assigned to the spill register r{self.spill_reg}")
