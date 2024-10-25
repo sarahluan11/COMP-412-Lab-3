@@ -129,8 +129,10 @@ def main():
                 
             # Handle Code Check 2: Register Allocation with Spilling if necessary
             elif num_registers:
-                num_registers = int(sys.argv[1])  # Number of registers passed from command-line
-                filepath = sys.argv[2]  # Filepath passed from the command-line
+                # Number of registers passed from command-line
+                num_registers = int(sys.argv[1]) 
+                 # Filepath passed from the command-line
+                filepath = sys.argv[2] 
                 
                 # Create an instance of Allocator with the number of registers and the input file path
                 allocator = Allocator(num_registers, ir)

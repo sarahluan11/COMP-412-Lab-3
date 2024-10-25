@@ -70,6 +70,9 @@ class Allocator:
         self.PRStack.append(pr)
 
     def choose_spill_pr(self):
+        """
+        Chooses the PR to spill by finding the PR with the farthest next use. 
+        """
         # set to -inf
         max_next_use = -float('inf')  
         # set an invalid index
