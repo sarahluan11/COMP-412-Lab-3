@@ -19,6 +19,7 @@ class Allocator:
         self.next_spill_location = 32768
         self.spill_reg = k
         self.mark = -1
+        # comment
 
         if k < self.MAXLIVE:
             print("// RESERVING A REGISTER: k =", k, ", MAXLIVE =", self.MAXLIVE)
