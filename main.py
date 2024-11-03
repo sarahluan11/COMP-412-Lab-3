@@ -6,19 +6,11 @@ from iloc_ir import ILOCLinkedList
 from contextlib import redirect_stdout
 import os 
 
-"""
-Simulator usage:
-    /clear/courses/comp412/students/lab2/sim < logs/cc1.i
-    /clear/courses/comp412/students/lab2/sim -i 0 1 2 3 4 5 6 7 8 9 10 < logs/cc2.i
-    /clear/courses/comp412/students/lab2/sim  -i 2048 0 1 2 3 4 5 6 7 8 9 < logs/report6.i
+# Import dependencies for Lab 3
+from dependence_graph import DependenceGraph  
+# from scheduler import Scheduler  
 
-Codecheck 2:
-    ./CodeChecks/CodeCheck2 ./412alloc
-
-Debugging:
-    ./412alloc 16 /storage-home/s/sl163/comp412_lab2/grading/auto_grade/blocks/report6.i
-"""
-
+# Logging for Lab 2
 def get_log_name(input_path):
     base_name = os.path.splitext(os.path.basename(input_path))[0]
     log_file = f"{base_name}.i"
@@ -29,7 +21,7 @@ def get_log_name(input_path):
 
 def print_help():
     help_message = """
-    COMP 412, Fall 2024, Allocator (412alloc)
+    COMP 412, Fall 2024, Allocator and Scheduler
     
     Command Syntax:
         ./412alloc [flags] <name>
@@ -43,6 +35,7 @@ def print_help():
         -p <name>    parses the input file and prints the intermediate representation (IR).
         -r <name>    parses and renames the input file, prints the renamed IR.
         -x <name>    renames and prints the results to stdout (Code Check 1 only).
+        -d <name>    performs dependence graph construction and scheduling.
     
     Format:
         k <name>     where k is the number of registers available to the allocator (3 ≤ k ≤ 64)
@@ -70,19 +63,17 @@ def main():
             if arg == '-h':
                 print_help()
                 sys.exit(0)
-            elif arg in ['-s', '-p', '-r', '-x']:
+            elif arg in ['-s', '-p', '-r', '-x', '-d']:
                 flag = arg
             else:
                 print(f"ERROR: Unrecognized flag '{arg}'")
                 sys.exit(1)
         elif arg.isdigit():
-            # Number of registers (k)
             num_registers = int(arg)
             if not (3 <= num_registers <= 64):
                 print(f"ERROR: Invalid number of registers '{arg}'. Must be between 3 and 64.")
                 sys.exit(1)
         else:
-            # This is the input filename
             input_file = arg
 
     # Ensure we have an input file
@@ -92,7 +83,7 @@ def main():
 
     try:
         with open(input_file, 'r') as file:
-            # Step 1: If '-s' flag is used, scan and print all tokens
+            # If '-s' flag is used, scan and print all tokens
             if flag == '-s':
                 print("Scanning tokens...")
                 while True:
@@ -106,7 +97,7 @@ def main():
                     print(f"{token[0]}: < {token[1]}, \"{token[2]}\" >")
                 return
 
-            # Step 2: Parse the input file and handle flags '-r', '-x'
+            # Parse the input file and handle flags '-r', '-x'
             ir, operation_count = parse(file)
 
             # Check if there are any errors in parsing
@@ -120,14 +111,12 @@ def main():
                 print("Intermediate Representation (IR):")
                 print_ir()
 
-            # If '-x' flag is used, perform Code Check 1 renaming and print the results
+            # If '-x' flag is used, perform Code Check 1
             elif flag == '-x':
-                # Rename registers and print the renamed ILOC
                 ir.rename_registers()
-                # print(max_vr, MAXLIVE)
                 ir.print_renamed_ILOC()
                 
-            # Handle Code Check 2: Register Allocation with Spilling if necessary
+            # If num_registers is used, perform Code Check 2
             elif num_registers:
                 # Number of registers passed from command-line
                 num_registers = int(sys.argv[1]) 
@@ -147,6 +136,29 @@ def main():
                 with open(get_log_name(filepath), 'w') as log_file:
                     with redirect_stdout(log_file):
                         allocator.int_rep.print_renamed_ILOC()
+            
+            # If '-d' flag is used, perform dependence graph construction and scheduling
+            elif flag == '-d':
+                # Step 1: Rename the registers
+                ir.rename_registers()
+                
+                # Step 2: Build the dependence graph
+                dependence_graph = DependenceGraph(ir)
+                dependence_graph.build_graph()  
+                
+                # Step 3: Calculate priorities for each operation
+                dependence_graph.calculate_priorities()
+
+                dependence_graph.save_as_dot("lab3_dependence_graph.dot")
+                
+                # Step 4: Schedule the instructions
+                # scheduler = Scheduler(dependence_graph)
+                # scheduled_instructions = scheduler.schedule()
+                
+                # Step 5: Print the scheduled instructions
+                # print("Scheduled Instructions:")
+                # for instruction in scheduled_instructions:
+                #     print(instruction)
             
             # If no valid flag or number of registers is provided, show an error
             else:
