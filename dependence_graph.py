@@ -6,8 +6,8 @@ class DependenceGraph:
             ir (ILOCLinkedList): The IR linked list containing instructions.
         """
         self.ir = ir
-        self.nodes = []  # List of nodes in the graph
-        self.edges = {}  # Dictionary mapping each node to its dependencies (edges)
+        self.nodes = []  
+        self.edges = {}  
     
     class Node:
         def __init__(self, instruction):
@@ -17,14 +17,13 @@ class DependenceGraph:
                 instruction (ILOCNode): The instruction this node represents.
             """
             self.instruction = instruction
-            self.dependencies = []  # List of nodes that this node depends on
-            self.priority = 0       # Calculated priority for scheduling
+            self.dependencies = []  
+            self.priority = 0       
     
     def build_graph(self):
         """
         Build the dependence graph by analyzing dependencies between instructions in the IR.
         """
-        # Create nodes for each instruction in the IR
         current_instruction = self.ir.head
         while current_instruction:
             node = self.Node(current_instruction)
@@ -38,41 +37,37 @@ class DependenceGraph:
             for j in range(i + 1, len(self.nodes)):
                 dependent_node = self.nodes[j]
 
-                # Check if 'node' has any dependency on 'dependent_node'
-                if self.is_dependent(node.instruction, dependent_node.instruction):
-                    node.dependencies.append(dependent_node)
-                    self.edges[node].append(dependent_node)
+                # Check if there is any dependency and get its type
+                dependency_type = self.is_dependent(node.instruction, dependent_node.instruction)
+                if dependency_type:
+                    node.dependencies.append((dependent_node, dependency_type))  # Store with type
+                    self.edges[node].append((dependent_node, dependency_type))  # Store with type
+
 
     def is_dependent(self, instr1, instr2):
         """
-        Check if instr2 depends on instr1 (e.g., instr2 uses a result produced by instr1).
+        Check if instr2 depends on instr1 and determine the type of dependency.
         Args:
             instr1 (ILOCNode): The first instruction.
             instr2 (ILOCNode): The second instruction.
         
         Returns:
-            bool: True if instr2 depends on instr1, False otherwise.
+            str: Dependency type ("Data", "Conflict", "Serial") if instr2 depends on instr1, otherwise None.
         """
-        # Example logic for dependency checks (customize this based on ILOC syntax):
-        # Dependency Types:
-        # 1. Read-after-write (RAW): instr2 reads a register written by instr1
-        # 2. Write-after-read (WAR): instr2 writes a register read by instr1
-        # 3. Write-after-write (WAW): instr2 writes a register written by instr1
-
         instr1_defs = self.get_defs(instr1)
         instr2_uses = self.get_uses(instr2)
 
-        # RAW dependency (instr2 uses a register written by instr1)
+        # Check for RAW dependency (Data dependency)
         if any(d in instr2_uses for d in instr1_defs):
-            return True
+            return "Data"
         
         instr2_defs = self.get_defs(instr2)
 
-        # WAR or WAW dependency
+        # Check for WAR or WAW dependencies
         if any(d in instr2_defs for d in instr1_defs):
-            return True
+            return "Conflict" if instr1.opcode in ["store", "load"] and instr2.opcode in ["store", "load"] else "Serial"
 
-        return False
+        return None
     
     def get_defs(self, instruction):
         """
@@ -83,7 +78,6 @@ class DependenceGraph:
         Returns:
             list: A list of registers defined by the instruction.
         """
-        # Example implementation based on instruction format
         defs = []
         if instruction.arg3 and instruction.opcode not in ["load", "store"]:
             defs.append(instruction.arg3.sr)  # Assuming arg3 is the destination register
@@ -112,8 +106,9 @@ class DependenceGraph:
         """
         for node in reversed(self.nodes):  # Reverse order for latency-weighted distance
             node.priority = 1  # Base priority value; customize based on scheduling heuristics
-            for dep in node.dependencies:
+            for dep, _ in node.dependencies:  # Separate the dependent node and the dependency type
                 node.priority = max(node.priority, dep.priority + 1)  # Latency-weighted depth
+
     
     def save_as_dot(self, filename="dependence_graph.dot"):
         """
@@ -124,15 +119,20 @@ class DependenceGraph:
         with open(filename, "w") as f:
             f.write("digraph DependenceGraph {\n")
             
-            # Add nodes
-            for node in self.nodes:
-                label = f"{node.instruction.opcode}"
+            # Add nodes with line number and instruction
+            for i, node in enumerate(self.nodes):
+                line_number = i + 1  # Assuming line numbers start from 1
+                instruction_text = f"{node.instruction.opcode} " \
+                                   f"{node.instruction.arg1.sr if node.instruction.arg1 else ''}, " \
+                                   f"{node.instruction.arg2.sr if node.instruction.arg2 else ''} => " \
+                                   f"{node.instruction.arg3.sr if node.instruction.arg3 else ''}"
+                label = f"{line_number}: {instruction_text}"
                 f.write(f'    "{id(node)}" [label="{label}"];\n')
             
-            # Add edges based on dependencies
+            # Add edges with dependency type labels
             for node in self.nodes:
-                for dep in node.dependencies:
-                    f.write(f'    "{id(node)}" -> "{id(dep)}";\n')
+                for dep_node, dep_type in node.dependencies:
+                    f.write(f'    "{id(node)}" -> "{id(dep_node)}" [label="{dep_type}"];\n')
             
             f.write("}\n")
         print(f"Dependence graph saved as {filename}")
