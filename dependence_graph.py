@@ -21,28 +21,34 @@ class DependenceGraph:
             self.priority = 0       
     
     def build_graph(self):
-        """
-        Build the dependence graph by analyzing dependencies between instructions in the IR.
-        """
         current_instruction = self.ir.head
         while current_instruction:
             node = self.Node(current_instruction)
             self.nodes.append(node)
             current_instruction = current_instruction.next
 
-        # Establish dependencies by analyzing each instruction
         for i, node in enumerate(self.nodes):
             self.edges[node] = []
 
             for j in range(i + 1, len(self.nodes)):
                 dependent_node = self.nodes[j]
 
-                # Check if there is any dependency and get its type
-                dependency_type = self.is_dependent(node.instruction, dependent_node.instruction)
-                if dependency_type:
-                    node.dependencies.append((dependent_node, dependency_type))  # Store with type
-                    self.edges[node].append((dependent_node, dependency_type))  # Store with type
+                # Check if there is any dependency and get its type and register
+                dependency_type, reg = self.is_dependent(node.instruction, dependent_node.instruction)
 
+                # Debug output: Print the detected dependency
+                print(f"Checking dependency from Node {i + 1} ({node.instruction.opcode}) "
+                  f"to Node {j + 1} ({dependent_node.instruction.opcode}): {dependency_type}, {reg}")
+                
+                if dependency_type:
+                    print(f"Adding {dependency_type} dependency from {node.instruction} to {dependent_node.instruction}")
+                    node.dependencies.append((dependent_node, f"{dependency_type}, vr{reg}"))
+                    self.edges[node].append((dependent_node, f"{dependency_type}, vr{reg}"))
+        
+          # Debug output: Print all nodes and their dependencies
+        for i, node in enumerate(self.nodes):
+            dep_list = [(j + 1, dep_type) for j, (dep_node, dep_type) in enumerate(node.dependencies)]
+            print(f"Node {i + 1} ({node.instruction.opcode}): Dependencies -> {dep_list}")
 
     def is_dependent(self, instr1, instr2):
         """
@@ -50,25 +56,50 @@ class DependenceGraph:
         Args:
             instr1 (ILOCNode): The first instruction.
             instr2 (ILOCNode): The second instruction.
-        
+
         Returns:
-            str: Dependency type ("Data", "Conflict", "Serial") if instr2 depends on instr1, otherwise None.
+            tuple: (Dependency type, Register involved) if instr2 depends on instr1, otherwise (None, None).
         """
         instr1_defs = self.get_defs(instr1)
         instr2_uses = self.get_uses(instr2)
-
-        # Check for RAW dependency (Data dependency)
-        if any(d in instr2_uses for d in instr1_defs):
-            return "Data"
-        
         instr2_defs = self.get_defs(instr2)
 
-        # Check for WAR or WAW dependencies
-        if any(d in instr2_defs for d in instr1_defs):
-            return "Conflict" if instr1.opcode in ["store", "load"] and instr2.opcode in ["store", "load"] else "Serial"
+        # Check for RAW (Read After Write) dependency: instr1 writes to a register used by instr2
+        for d in instr1_defs:
+            if d in instr2_uses:
+                return "RAW", d
 
-        return None
-    
+        # Check for WAR (Write After Read) dependency: instr1 reads a register written by instr2
+        for u in instr2_uses:
+            if u in instr1_defs:
+                return "WAR", u
+
+        # Check for WAW (Write After Write) dependency: both instr1 and instr2 write to the same register
+        for d in instr1_defs:
+            if d in instr2_defs:
+                return "WAW", d
+
+        # Serialization dependency for two output instructions
+        if instr1.opcode == "output" and instr2.opcode == "output":
+            return "Serialization", None
+
+        # Check for dependencies involving store and other instructions based on address conflicts
+        if instr1.opcode == "store":
+            if instr2.opcode == "store":
+                return "Serialization", None  # store store requires serialization
+            elif instr2.opcode in ["load", "output"]:
+                for d in instr1_defs:
+                    if d in instr2_uses:
+                        return "Conflict", d  # store load or store output with address conflict
+
+        # Check for WAR dependency with load followed by store at the same address
+        if instr1.opcode in ["load", "output"] and instr2.opcode == "store":
+            for d in instr2_defs:
+                if d in instr1_defs:
+                    return "WAR", d
+
+        return None, None
+
     def get_defs(self, instruction):
         """
         Get the registers defined (written) by an instruction.
@@ -80,7 +111,7 @@ class DependenceGraph:
         """
         defs = []
         if instruction.arg3 and instruction.opcode not in ["load", "store"]:
-            defs.append(instruction.arg3.sr)  # Assuming arg3 is the destination register
+            defs.append(instruction.arg3.vr)  # Assuming arg3 is the destination register
         return defs
 
     def get_uses(self, instruction):
@@ -94,9 +125,9 @@ class DependenceGraph:
         """
         uses = []
         if instruction.arg1:
-            uses.append(instruction.arg1.sr)
+            uses.append(instruction.arg1.vr)
         if instruction.arg2:
-            uses.append(instruction.arg2.sr)
+            uses.append(instruction.arg2.vr)
         return uses
 
     def calculate_priorities(self):
@@ -105,8 +136,9 @@ class DependenceGraph:
         The priority helps guide the scheduler to optimize execution order.
         """
         for node in reversed(self.nodes):  # Reverse order for latency-weighted distance
-            node.priority = 1  # Base priority value; customize based on scheduling heuristics
-            for dep, _ in node.dependencies:  # Separate the dependent node and the dependency type
+            # Start with a base priority
+            node.priority = 1
+            for dep, _ in node.dependencies:
                 node.priority = max(node.priority, dep.priority + 1)  # Latency-weighted depth
 
     
@@ -119,20 +151,21 @@ class DependenceGraph:
         with open(filename, "w") as f:
             f.write("digraph DependenceGraph {\n")
             
-            # Add nodes with line number and instruction
+            # Add nodes with line number, instruction, and priority
             for i, node in enumerate(self.nodes):
                 line_number = i + 1  # Assuming line numbers start from 1
                 instruction_text = f"{node.instruction.opcode} " \
                                    f"{node.instruction.arg1.sr if node.instruction.arg1 else ''}, " \
                                    f"{node.instruction.arg2.sr if node.instruction.arg2 else ''} => " \
                                    f"{node.instruction.arg3.sr if node.instruction.arg3 else ''}"
-                label = f"{line_number}: {instruction_text}"
+                label = f"{line_number}: {instruction_text}\\nprio: {node.priority}"
                 f.write(f'    "{id(node)}" [label="{label}"];\n')
             
-            # Add edges with dependency type labels
+            # Add edges with dependency type and register labels
             for node in self.nodes:
-                for dep_node, dep_type in node.dependencies:
-                    f.write(f'    "{id(node)}" -> "{id(dep_node)}" [label="{dep_type}"];\n')
+                for dep_node, dep_info in node.dependencies:
+                    f.write(f'    "{id(node)}" -> "{id(dep_node)}" [label="{dep_info}"];\n')
             
             f.write("}\n")
         print(f"Dependence graph saved as {filename}")
+
