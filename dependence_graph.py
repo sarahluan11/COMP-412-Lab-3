@@ -1,3 +1,15 @@
+class Node:
+    def __init__(self, instruction):
+        """
+        Represents a node in the dependence graph.
+        Args:
+            instruction (ILOCNode): The instruction this node represents.
+        """
+        self.instruction = instruction
+        self.dependencies = []  
+        self.priority = 0   
+
+
 class DependenceGraph:
     def __init__(self, ir):
         """
@@ -8,97 +20,87 @@ class DependenceGraph:
         self.ir = ir
         self.nodes = []  
         self.edges = {}  
-    
-    class Node:
-        def __init__(self, instruction):
-            """
-            Represents a node in the dependence graph.
-            Args:
-                instruction (ILOCNode): The instruction this node represents.
-            """
-            self.instruction = instruction
-            self.dependencies = []  
-            self.priority = 0       
+        
     
     def build_graph(self):
+        # Maps each VR to the latest node that defines it
+        last_def = {}  
+        # Maps each VR to the latest node that uses it
+        last_use = {}  
+
+        # Track all previous memory operations (store, output)
+        last_memory_ops = []
+
         current_instruction = self.ir.head
         while current_instruction:
-            node = self.Node(current_instruction)
+            node = Node(current_instruction)
             self.nodes.append(node)
-            current_instruction = current_instruction.next
-
-        for i, node in enumerate(self.nodes):
             self.edges[node] = []
 
-            for j in range(i + 1, len(self.nodes)):
-                dependent_node = self.nodes[j]
+            # Get the virtual registers defined and used by the current instruction
+            defs = self.get_defs(current_instruction)
+            uses = self.get_uses(current_instruction)
 
-                # Check if there is any dependency and get its type and register
-                dependency_type, reg = self.is_dependent(node.instruction, dependent_node.instruction)
+            # 1. Handle regular dependencies
+            for vr in uses:
+                if vr in last_def:
+                    if current_instruction.opcode not in ["store"]:
+                        self.add_edge(node, last_def[vr], "data", vr)
 
-                # Debug output: Print the detected dependency
-                print(f"Checking dependency from Node {i + 1} ({node.instruction.opcode}) "
-                  f"to Node {j + 1} ({dependent_node.instruction.opcode}): {dependency_type}, {reg}")
-                
-                if dependency_type:
-                    print(f"Adding {dependency_type} dependency from {node.instruction} to {dependent_node.instruction}")
-                    node.dependencies.append((dependent_node, f"{dependency_type}, vr{reg}"))
-                    self.edges[node].append((dependent_node, f"{dependency_type}, vr{reg}"))
-        
-          # Debug output: Print all nodes and their dependencies
+                if vr in last_use:
+                    if current_instruction.opcode == "store":
+                        self.add_edge(node, last_use[vr], "data", vr)
+
+                last_use[vr] = node
+
+            for vr in defs:
+                if vr in last_def:
+                    if current_instruction.opcode == "store" and last_def[vr].instruction.opcode == "store":
+                        self.add_edge(node, last_def[vr], "data", vr)
+
+                last_def[vr] = node
+
+            # 2. Handle conflict edges (RAW)
+            if current_instruction.opcode in ["load", "output"]:
+                for mem_node in last_memory_ops:
+                    if current_instruction.opcode == "load" and mem_node.instruction.opcode == "store":
+                        self.add_edge(node, mem_node, "conflict", vr)
+                    if current_instruction.opcode == "output" and mem_node.instruction.opcode == "store":
+                        self.add_edge(node, mem_node,"conflict", vr)
+                #last_memory_ops.append(node)
+
+            # 3. Handle serial edges 
+            if current_instruction.opcode in ["store", "output"]:
+                for mem_node in last_memory_ops:
+                    # Output-output 
+                    if current_instruction.opcode == "output" and mem_node.instruction.opcode == "output":
+                        self.add_edge(node, mem_node,"serial", None)
+
+                    # Store-store 
+                    elif current_instruction.opcode == "store" and mem_node.instruction.opcode == "store":
+                        self.add_edge(node, mem_node, "serial", None)
+
+                # Add the current node to last_memory_ops as a memory operation
+                last_memory_ops.append(node)
+
+            # Move to the next instruction in the IR linked list
+            current_instruction = current_instruction.next
+
+        # Debug output: Print all nodes and their dependencies
         for i, node in enumerate(self.nodes):
-            dep_list = [(j + 1, dep_type) for j, (dep_node, dep_type) in enumerate(node.dependencies)]
+            dep_list = [(self.nodes.index(dep_node) + 1, dep_type) for dep_node, dep_type in node.dependencies]
             print(f"Node {i + 1} ({node.instruction.opcode}): Dependencies -> {dep_list}")
 
-    def is_dependent(self, instr1, instr2):
-        """
-        Check if instr2 depends on instr1 and determine the type of dependency.
-        Args:
-            instr1 (ILOCNode): The first instruction.
-            instr2 (ILOCNode): The second instruction.
+    def add_edge(self, from_node, to_node, dep_type, vr):
+        label = f"{dep_type}, vr{vr}" if vr is not None else dep_type
+        from_node.dependencies.append((to_node, label))
+        self.edges[from_node].append((to_node, label))
 
-        Returns:
-            tuple: (Dependency type, Register involved) if instr2 depends on instr1, otherwise (None, None).
-        """
-        instr1_defs = self.get_defs(instr1)
-        instr2_uses = self.get_uses(instr2)
-        instr2_defs = self.get_defs(instr2)
 
-        # Check for RAW (Read After Write) dependency: instr1 writes to a register used by instr2
-        for d in instr1_defs:
-            if d in instr2_uses:
-                return "RAW", d
-
-        # Check for WAR (Write After Read) dependency: instr1 reads a register written by instr2
-        for u in instr2_uses:
-            if u in instr1_defs:
-                return "WAR", u
-
-        # Check for WAW (Write After Write) dependency: both instr1 and instr2 write to the same register
-        for d in instr1_defs:
-            if d in instr2_defs:
-                return "WAW", d
-
-        # Serialization dependency for two output instructions
-        if instr1.opcode == "output" and instr2.opcode == "output":
-            return "Serialization", None
-
-        # Check for dependencies involving store and other instructions based on address conflicts
-        if instr1.opcode == "store":
-            if instr2.opcode == "store":
-                return "Serialization", None  # store store requires serialization
-            elif instr2.opcode in ["load", "output"]:
-                for d in instr1_defs:
-                    if d in instr2_uses:
-                        return "Conflict", d  # store load or store output with address conflict
-
-        # Check for WAR dependency with load followed by store at the same address
-        if instr1.opcode in ["load", "output"] and instr2.opcode == "store":
-            for d in instr2_defs:
-                if d in instr1_defs:
-                    return "WAR", d
-
-        return None, None
+    def add_edge(self, from_node, to_node, dep_type, vr):
+        label = f"{dep_type}, vr{vr}" if vr is not None else dep_type
+        from_node.dependencies.append((to_node, label))
+        self.edges[from_node].append((to_node, label))
 
     def get_defs(self, instruction):
         """
@@ -110,8 +112,8 @@ class DependenceGraph:
             list: A list of registers defined by the instruction.
         """
         defs = []
-        if instruction.arg3 and instruction.opcode not in ["load", "store"]:
-            defs.append(instruction.arg3.vr)  # Assuming arg3 is the destination register
+        if instruction.arg3 and instruction.opcode not in ["store"]:
+            defs.append(instruction.arg3.vr)  
         return defs
 
     def get_uses(self, instruction):
@@ -135,11 +137,13 @@ class DependenceGraph:
         Calculate the priority for each node based on dependencies.
         The priority helps guide the scheduler to optimize execution order.
         """
-        for node in reversed(self.nodes):  # Reverse order for latency-weighted distance
+         # Reverse order for latency-weighted distance
+        for node in reversed(self.nodes): 
             # Start with a base priority
             node.priority = 1
             for dep, _ in node.dependencies:
-                node.priority = max(node.priority, dep.priority + 1)  # Latency-weighted depth
+                # Latency-weighted depth
+                node.priority = max(node.priority, dep.priority + 1) 
 
     
     def save_as_dot(self, filename="dependence_graph.dot"):
@@ -154,10 +158,39 @@ class DependenceGraph:
             # Add nodes with line number, instruction, and priority
             for i, node in enumerate(self.nodes):
                 line_number = i + 1  # Assuming line numbers start from 1
-                instruction_text = f"{node.instruction.opcode} " \
-                                   f"{node.instruction.arg1.sr if node.instruction.arg1 else ''}, " \
-                                   f"{node.instruction.arg2.sr if node.instruction.arg2 else ''} => " \
-                                   f"{node.instruction.arg3.sr if node.instruction.arg3 else ''}"
+
+                # Format instruction text based on opcode, omitting "None" values
+                if node.instruction.opcode == "loadI":
+                    # Use 'sr' for 'loadI' and skip any None values
+                    arg1_text = node.instruction.arg1.sr if node.instruction.arg1 else ""
+                    arg3_text = node.instruction.arg3.vr if node.instruction.arg3 else ""
+                    instruction_text = f"{node.instruction.opcode} {arg1_text} => {arg3_text}"
+
+                elif node.instruction.opcode == "output":
+                    # For 'output' instructions, only include non-None arguments
+                    arg1_text = node.instruction.arg1.sr if node.instruction.arg1 else ""
+                    instruction_text = f"{node.instruction.opcode} {arg1_text}"
+
+                elif node.instruction.opcode == "store":
+                    # For 'store' instructions, use 'arg1' and 'arg3' if they exist
+                    arg1_text = node.instruction.arg1.vr if node.instruction.arg1 else ""
+                    arg3_text = node.instruction.arg3.vr if node.instruction.arg3 else ""
+                    instruction_text = f"{node.instruction.opcode} {arg1_text} => {arg3_text}"
+
+                elif node.instruction.opcode == "load":
+                    # For 'load' instructions, use 'arg1' if it exists and 'arg3'
+                    arg1_text = node.instruction.arg1.vr if node.instruction.arg1 else ""
+                    arg3_text = node.instruction.arg3.vr if node.instruction.arg3 else ""
+                    instruction_text = f"{node.instruction.opcode} {arg1_text} => {arg3_text}"
+
+                else:
+                    # For other instructions, use 'vr' and handle non-None arguments
+                    arg1_text = node.instruction.arg1.vr if node.instruction.arg1 else ""
+                    arg2_text = node.instruction.arg2.vr if node.instruction.arg2 else ""
+                    arg3_text = node.instruction.arg3.vr if node.instruction.arg3 else ""
+                    instruction_text = f"{node.instruction.opcode} {arg1_text}, {arg2_text} => {arg3_text}"
+
+                # Create label with line number, instruction, and priority
                 label = f"{line_number}: {instruction_text}\\nprio: {node.priority}"
                 f.write(f'    "{id(node)}" [label="{label}"];\n')
             
@@ -168,4 +201,3 @@ class DependenceGraph:
             
             f.write("}\n")
         print(f"Dependence graph saved as {filename}")
-
