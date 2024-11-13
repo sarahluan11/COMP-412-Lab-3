@@ -7,7 +7,8 @@ from contextlib import redirect_stdout
 import os 
 
 # Import dependencies for Lab 3
-from dependence_graph import DependenceGraph  
+from dependence_graph import DependenceGraph
+from scheduler import Scheduler  
 # from scheduler import Scheduler  
 
 # Logging for Lab 2
@@ -153,16 +154,13 @@ def main():
                 # Step 3: Build and save the transpose of the dependence graph
                 dg = dependence_graph.reverse_graph()
                 dg.save_as_dot("lab3_reverse_dependence_graph.dot")
-
                 
                 # Step 4: Schedule the instructions
-                # scheduler = Scheduler(dependence_graph)
-                # scheduled_instructions = scheduler.schedule()
-                
-                # Step 5: Print the scheduled instructions
-                # print("Scheduled Instructions:")
-                # for instruction in scheduled_instructions:
-                #     print(instruction)
+                scheduler = Scheduler(dependence_graph)
+                schedule = scheduler.schedule_operations()
+
+                for cycle, instruction in schedule:
+                    print(f"Cycle {cycle}: {instruction}")
             
             # If no valid flag or number of registers is provided, show an error
             else:
