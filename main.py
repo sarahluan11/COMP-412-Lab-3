@@ -145,11 +145,16 @@ def main():
                 # Step 2: Build the dependence graph
                 dependence_graph = DependenceGraph(ir)
                 dependence_graph.build_graph()  
-                
-                # Step 3: Calculate priorities for each operation
-                dependence_graph.calculate_priorities()
 
+                # Save the regular dependence graph
                 dependence_graph.save_as_dot("lab3_dependence_graph.dot")
+                
+                # Step 3: Build and save the transpose of the dependence graph
+                dependence_graph.build_transpose_graph()
+                dependence_graph.save_as_dot("lab3_transpose_dependence_graph.dot")
+
+                # Step 4: Calculate priorities for each operation (using the original graph, if needed)
+                dependence_graph.calculate_priorities()
                 
                 # Step 4: Schedule the instructions
                 # scheduler = Scheduler(dependence_graph)

@@ -1,0 +1,294 @@
+digraph DG {
+  9 [label="9:  loadI  0 => r61
+prio:  795"];
+  10 [label="10:  load   r61 => r59
+prio:  784"];
+  11 [label="11:  add    r59, r59  => r7
+prio:  723"];
+  12 [label="12:  mult   r7, r7  => r2
+prio:  370"];
+  13 [label="13:  mult   r7, r2  => r60
+prio:  339"];
+  14 [label="14:  mult   r7, r60  => r58
+prio:  308"];
+  15 [label="15:  add    r59, r7  => r5
+prio:  662"];
+  16 [label="16:  load   r2 => r41
+prio:  338"];
+  17 [label="17:  store  r58 => r41
+prio:  277"];
+  19 [label="19:  loadI  1 => r57
+prio:  723"];
+  20 [label="20:  mult   r57, r7  => r56
+prio:  712"];
+  21 [label="21:  mult   r56, r7  => r55
+prio:  681"];
+  22 [label="22:  mult   r55, r7  => r54
+prio:  650"];
+  23 [label="23:  mult   r54, r7  => r53
+prio:  619"];
+  24 [label="24:  mult   r53, r7  => r52
+prio:  588"];
+  25 [label="25:  mult   r52, r7  => r51
+prio:  557"];
+  26 [label="26:  mult   r51, r7  => r50
+prio:  526"];
+  27 [label="27:  mult   r50, r7  => r49
+prio:  495"];
+  28 [label="28:  mult   r49, r7  => r48
+prio:  464"];
+  29 [label="29:  mult   r48, r7  => r47
+prio:  433"];
+  30 [label="30:  mult   r47, r7  => r46
+prio:  402"];
+  31 [label="31:  mult   r46, r7  => r45
+prio:  371"];
+  32 [label="32:  mult   r45, r7  => r44
+prio:  340"];
+  33 [label="33:  mult   r44, r7  => r43
+prio:  309"];
+  34 [label="34:  mult   r43, r7  => r42
+prio:  278"];
+  35 [label="35:  mult   r42, r7  => r40
+prio:  247"];
+  36 [label="36:  add    r2, r41  => r23
+prio:  227"];
+  37 [label="37:  store  r40 => r23
+prio:  216"];
+  39 [label="39:  loadI  1 => r39
+prio:  662"];
+  40 [label="40:  mult   r39, r5  => r38
+prio:  651"];
+  41 [label="41:  mult   r38, r5  => r37
+prio:  620"];
+  42 [label="42:  mult   r37, r5  => r36
+prio:  589"];
+  43 [label="43:  mult   r36, r5  => r35
+prio:  558"];
+  44 [label="44:  mult   r35, r5  => r34
+prio:  527"];
+  45 [label="45:  mult   r34, r5  => r33
+prio:  496"];
+  46 [label="46:  mult   r33, r5  => r32
+prio:  465"];
+  47 [label="47:  mult   r32, r5  => r31
+prio:  434"];
+  48 [label="48:  mult   r31, r5  => r30
+prio:  403"];
+  49 [label="49:  mult   r30, r5  => r29
+prio:  372"];
+  50 [label="50:  mult   r29, r5  => r28
+prio:  341"];
+  51 [label="51:  mult   r28, r5  => r27
+prio:  310"];
+  52 [label="52:  mult   r27, r5  => r26
+prio:  279"];
+  53 [label="53:  mult   r26, r5  => r25
+prio:  248"];
+  54 [label="54:  mult   r25, r5  => r24
+prio:  217"];
+  55 [label="55:  mult   r24, r5  => r22
+prio:  186"];
+  56 [label="56:  add    r2, r23  => r3
+prio:  166"];
+  57 [label="57:  store  r22 => r3
+prio:  155"];
+  59 [label="59:  loadI  1 => r21
+prio:  601"];
+  60 [label="60:  mult   r21, r7  => r20
+prio:  590"];
+  61 [label="61:  mult   r20, r5  => r19
+prio:  559"];
+  62 [label="62:  mult   r19, r7  => r18
+prio:  528"];
+  63 [label="63:  mult   r18, r5  => r17
+prio:  497"];
+  64 [label="64:  mult   r17, r7  => r16
+prio:  466"];
+  65 [label="65:  mult   r16, r5  => r15
+prio:  435"];
+  66 [label="66:  mult   r15, r7  => r14
+prio:  404"];
+  67 [label="67:  mult   r14, r5  => r13
+prio:  373"];
+  68 [label="68:  mult   r13, r7  => r12
+prio:  342"];
+  69 [label="69:  mult   r12, r5  => r11
+prio:  311"];
+  70 [label="70:  mult   r11, r7  => r10
+prio:  280"];
+  71 [label="71:  mult   r10, r5  => r9
+prio:  249"];
+  72 [label="72:  mult   r9, r7  => r8
+prio:  218"];
+  73 [label="73:  mult   r8, r5  => r6
+prio:  187"];
+  74 [label="74:  mult   r6, r7  => r4
+prio:  156"];
+  75 [label="75:  mult   r4, r5  => r1
+prio:  125"];
+  76 [label="76:  add    r2, r3  => r0
+prio:  105"];
+  77 [label="77:  store  r1 => r0
+prio:  94"];
+  78 [label="78:  output 100
+prio:  33"];
+  79 [label="79:  output 104
+prio:  22"];
+  80 [label="80:  output 108
+prio:  11"];
+  81 [label="81:  output 112
+prio:  0"];
+  10 -> 9 [ label=" Data, vr61"];
+  11 -> 10 [ label=" Data, vr59"];
+  12 -> 11 [ label=" Data, vr7"];
+  13 -> 11 [ label=" Data, vr7"];
+  13 -> 12 [ label=" Data, vr2"];
+  14 -> 11 [ label=" Data, vr7"];
+  14 -> 13 [ label=" Data, vr60"];
+  15 -> 10 [ label=" Data, vr59"];
+  15 -> 11 [ label=" Data, vr7"];
+  16 -> 12 [ label=" Data, vr2"];
+  17 -> 14 [ label=" Data, vr58"];
+  17 -> 16 [ label=" Data, vr41"];
+  17 -> 10[ label=" Serial "];
+  20 -> 19 [ label=" Data, vr57"];
+  20 -> 11 [ label=" Data, vr7"];
+  21 -> 20 [ label=" Data, vr56"];
+  21 -> 11 [ label=" Data, vr7"];
+  22 -> 21 [ label=" Data, vr55"];
+  22 -> 11 [ label=" Data, vr7"];
+  23 -> 22 [ label=" Data, vr54"];
+  23 -> 11 [ label=" Data, vr7"];
+  24 -> 23 [ label=" Data, vr53"];
+  24 -> 11 [ label=" Data, vr7"];
+  25 -> 24 [ label=" Data, vr52"];
+  25 -> 11 [ label=" Data, vr7"];
+  26 -> 25 [ label=" Data, vr51"];
+  26 -> 11 [ label=" Data, vr7"];
+  27 -> 26 [ label=" Data, vr50"];
+  27 -> 11 [ label=" Data, vr7"];
+  28 -> 27 [ label=" Data, vr49"];
+  28 -> 11 [ label=" Data, vr7"];
+  29 -> 28 [ label=" Data, vr48"];
+  29 -> 11 [ label=" Data, vr7"];
+  30 -> 29 [ label=" Data, vr47"];
+  30 -> 11 [ label=" Data, vr7"];
+  31 -> 30 [ label=" Data, vr46"];
+  31 -> 11 [ label=" Data, vr7"];
+  32 -> 31 [ label=" Data, vr45"];
+  32 -> 11 [ label=" Data, vr7"];
+  33 -> 32 [ label=" Data, vr44"];
+  33 -> 11 [ label=" Data, vr7"];
+  34 -> 33 [ label=" Data, vr43"];
+  34 -> 11 [ label=" Data, vr7"];
+  35 -> 34 [ label=" Data, vr42"];
+  35 -> 11 [ label=" Data, vr7"];
+  36 -> 12 [ label=" Data, vr2"];
+  36 -> 16 [ label=" Data, vr41"];
+  37 -> 35 [ label=" Data, vr40"];
+  37 -> 36 [ label=" Data, vr23"];
+  37 -> 17[ label=" Serial "];
+  37 -> 10[ label=" Serial "];
+  37 -> 16[ label=" Serial "];
+  40 -> 39 [ label=" Data, vr39"];
+  40 -> 15 [ label=" Data, vr5"];
+  41 -> 40 [ label=" Data, vr38"];
+  41 -> 15 [ label=" Data, vr5"];
+  42 -> 41 [ label=" Data, vr37"];
+  42 -> 15 [ label=" Data, vr5"];
+  43 -> 42 [ label=" Data, vr36"];
+  43 -> 15 [ label=" Data, vr5"];
+  44 -> 43 [ label=" Data, vr35"];
+  44 -> 15 [ label=" Data, vr5"];
+  45 -> 44 [ label=" Data, vr34"];
+  45 -> 15 [ label=" Data, vr5"];
+  46 -> 45 [ label=" Data, vr33"];
+  46 -> 15 [ label=" Data, vr5"];
+  47 -> 46 [ label=" Data, vr32"];
+  47 -> 15 [ label=" Data, vr5"];
+  48 -> 47 [ label=" Data, vr31"];
+  48 -> 15 [ label=" Data, vr5"];
+  49 -> 48 [ label=" Data, vr30"];
+  49 -> 15 [ label=" Data, vr5"];
+  50 -> 49 [ label=" Data, vr29"];
+  50 -> 15 [ label=" Data, vr5"];
+  51 -> 50 [ label=" Data, vr28"];
+  51 -> 15 [ label=" Data, vr5"];
+  52 -> 51 [ label=" Data, vr27"];
+  52 -> 15 [ label=" Data, vr5"];
+  53 -> 52 [ label=" Data, vr26"];
+  53 -> 15 [ label=" Data, vr5"];
+  54 -> 53 [ label=" Data, vr25"];
+  54 -> 15 [ label=" Data, vr5"];
+  55 -> 54 [ label=" Data, vr24"];
+  55 -> 15 [ label=" Data, vr5"];
+  56 -> 12 [ label=" Data, vr2"];
+  56 -> 36 [ label=" Data, vr23"];
+  57 -> 55 [ label=" Data, vr22"];
+  57 -> 56 [ label=" Data, vr3"];
+  57 -> 37[ label=" Serial "];
+  57 -> 10[ label=" Serial "];
+  57 -> 16[ label=" Serial "];
+  57 -> 17[ label=" Serial "];
+  60 -> 59 [ label=" Data, vr21"];
+  60 -> 11 [ label=" Data, vr7"];
+  61 -> 60 [ label=" Data, vr20"];
+  61 -> 15 [ label=" Data, vr5"];
+  62 -> 61 [ label=" Data, vr19"];
+  62 -> 11 [ label=" Data, vr7"];
+  63 -> 62 [ label=" Data, vr18"];
+  63 -> 15 [ label=" Data, vr5"];
+  64 -> 63 [ label=" Data, vr17"];
+  64 -> 11 [ label=" Data, vr7"];
+  65 -> 64 [ label=" Data, vr16"];
+  65 -> 15 [ label=" Data, vr5"];
+  66 -> 65 [ label=" Data, vr15"];
+  66 -> 11 [ label=" Data, vr7"];
+  67 -> 66 [ label=" Data, vr14"];
+  67 -> 15 [ label=" Data, vr5"];
+  68 -> 67 [ label=" Data, vr13"];
+  68 -> 11 [ label=" Data, vr7"];
+  69 -> 68 [ label=" Data, vr12"];
+  69 -> 15 [ label=" Data, vr5"];
+  70 -> 69 [ label=" Data, vr11"];
+  70 -> 11 [ label=" Data, vr7"];
+  71 -> 70 [ label=" Data, vr10"];
+  71 -> 15 [ label=" Data, vr5"];
+  72 -> 71 [ label=" Data, vr9"];
+  72 -> 11 [ label=" Data, vr7"];
+  73 -> 72 [ label=" Data, vr8"];
+  73 -> 15 [ label=" Data, vr5"];
+  74 -> 73 [ label=" Data, vr6"];
+  74 -> 11 [ label=" Data, vr7"];
+  75 -> 74 [ label=" Data, vr4"];
+  75 -> 15 [ label=" Data, vr5"];
+  76 -> 12 [ label=" Data, vr2"];
+  76 -> 56 [ label=" Data, vr3"];
+  77 -> 75 [ label=" Data, vr1"];
+  77 -> 76 [ label=" Data, vr0"];
+  77 -> 57[ label=" Serial "];
+  77 -> 10[ label=" Serial "];
+  77 -> 16[ label=" Serial "];
+  77 -> 37[ label=" Serial "];
+  77 -> 17[ label=" Serial "];
+  78 -> 77 [ label=" Conflict "];
+  78 -> 57 [ label=" Conflict "];
+  78 -> 37 [ label=" Conflict "];
+  78 -> 17 [ label=" Conflict "];
+  79 -> 78[ label=" Serial "];
+  79 -> 77 [ label=" Conflict "];
+  79 -> 57 [ label=" Conflict "];
+  79 -> 37 [ label=" Conflict "];
+  79 -> 17 [ label=" Conflict "];
+  80 -> 79[ label=" Serial "];
+  80 -> 77 [ label=" Conflict "];
+  80 -> 57 [ label=" Conflict "];
+  80 -> 37 [ label=" Conflict "];
+  80 -> 17 [ label=" Conflict "];
+  81 -> 80[ label=" Serial "];
+  81 -> 77 [ label=" Conflict "];
+  81 -> 57 [ label=" Conflict "];
+  81 -> 37 [ label=" Conflict "];
+  81 -> 17 [ label=" Conflict "];
+}

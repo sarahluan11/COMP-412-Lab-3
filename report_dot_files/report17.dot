@@ -1,0 +1,94 @@
+digraph DG {
+  10 [label="10:  loadI  1036 => r24
+prio:  186"];
+  11 [label="11:  load   r24 => r18
+prio:  175"];
+  12 [label="12:  loadI  7 => r16
+prio:  134"];
+  13 [label="13:  loadI  2052 => r12
+prio:  72"];
+  14 [label="14:  loadI  1032 => r23
+prio:  208"];
+  15 [label="15:  load   r23 => r22
+prio:  197"];
+  16 [label="16:  add    r22, r22  => r7
+prio:  136"];
+  17 [label="17:  loadI  1028 => r21
+prio:  210"];
+  18 [label="18:  load   r21 => r20
+prio:  199"];
+  19 [label="19:  add    r20, r20  => r11
+prio:  138"];
+  20 [label="20:  loadI  1024 => r19
+prio:  209"];
+  21 [label="21:  load   r19 => r6
+prio:  198"];
+  22 [label="22:  add    r6, r6  => r10
+prio:  137"];
+  23 [label="23:  add    r18, r10  => r17
+prio:  114"];
+  24 [label="24:  add    r17, r16  => r14
+prio:  103"];
+  25 [label="25:  mult   r10, r16  => r15
+prio:  123"];
+  26 [label="26:  mult   r14, r15  => r13
+prio:  92"];
+  27 [label="27:  store  r13 => r12
+prio:  61"];
+  28 [label="28:  add    r6, r11  => r4
+prio:  127"];
+  29 [label="29:  add    r10, r4  => r9
+prio:  116"];
+  30 [label="30:  add    r9, r9  => r8
+prio:  105"];
+  31 [label="31:  add    r8, r8  => r2
+prio:  94"];
+  32 [label="32:  sub    r6, r7  => r5
+prio:  125"];
+  33 [label="33:  mult   r4, r5  => r3
+prio:  114"];
+  34 [label="34:  add    r2, r3  => r1
+prio:  83"];
+  35 [label="35:  loadI  2048 => r0
+prio:  83"];
+  36 [label="36:  store  r1 => r0
+prio:  72"];
+  37 [label="37:  output 2048
+prio:  11"];
+  38 [label="38:  output 2052
+prio:  0"];
+  11 -> 10 [ label=" Data, vr24"];
+  15 -> 14 [ label=" Data, vr23"];
+  16 -> 15 [ label=" Data, vr22"];
+  18 -> 17 [ label=" Data, vr21"];
+  19 -> 18 [ label=" Data, vr20"];
+  21 -> 20 [ label=" Data, vr19"];
+  22 -> 21 [ label=" Data, vr6"];
+  23 -> 11 [ label=" Data, vr18"];
+  23 -> 22 [ label=" Data, vr10"];
+  24 -> 23 [ label=" Data, vr17"];
+  24 -> 12 [ label=" Data, vr16"];
+  25 -> 22 [ label=" Data, vr10"];
+  25 -> 12 [ label=" Data, vr16"];
+  26 -> 24 [ label=" Data, vr14"];
+  26 -> 25 [ label=" Data, vr15"];
+  27 -> 26 [ label=" Data, vr13"];
+  27 -> 13 [ label=" Data, vr12"];
+  28 -> 21 [ label=" Data, vr6"];
+  28 -> 19 [ label=" Data, vr11"];
+  29 -> 22 [ label=" Data, vr10"];
+  29 -> 28 [ label=" Data, vr4"];
+  30 -> 29 [ label=" Data, vr9"];
+  31 -> 30 [ label=" Data, vr8"];
+  32 -> 21 [ label=" Data, vr6"];
+  32 -> 16 [ label=" Data, vr7"];
+  33 -> 28 [ label=" Data, vr4"];
+  33 -> 32 [ label=" Data, vr5"];
+  34 -> 31 [ label=" Data, vr2"];
+  34 -> 33 [ label=" Data, vr3"];
+  36 -> 34 [ label=" Data, vr1"];
+  36 -> 35 [ label=" Data, vr0"];
+  37 -> 36 [ label=" Conflict "];
+  38 -> 37[ label=" Serial "];
+  38 -> 27 [ label=" Conflict "];
+}

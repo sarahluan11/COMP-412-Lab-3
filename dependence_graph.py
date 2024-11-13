@@ -67,7 +67,6 @@ class DependenceGraph:
                         self.add_edge(node, mem_node, "conflict", vr)
                     if current_instruction.opcode == "output" and mem_node.instruction.opcode == "store":
                         self.add_edge(node, mem_node,"conflict", vr)
-                #last_memory_ops.append(node)
 
             # 3. Handle serial edges 
             if current_instruction.opcode in ["store", "output"]:
@@ -90,12 +89,6 @@ class DependenceGraph:
         for i, node in enumerate(self.nodes):
             dep_list = [(self.nodes.index(dep_node) + 1, dep_type) for dep_node, dep_type in node.dependencies]
             print(f"Node {i + 1} ({node.instruction.opcode}): Dependencies -> {dep_list}")
-
-    def add_edge(self, from_node, to_node, dep_type, vr):
-        label = f"{dep_type}, vr{vr}" if vr is not None else dep_type
-        from_node.dependencies.append((to_node, label))
-        self.edges[from_node].append((to_node, label))
-
 
     def add_edge(self, from_node, to_node, dep_type, vr):
         label = f"{dep_type}, vr{vr}" if vr is not None else dep_type
