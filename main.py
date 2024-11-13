@@ -150,11 +150,11 @@ def main():
                 dependence_graph.save_as_dot("lab3_dependence_graph.dot")
                 
                 # Step 3: Build and save the transpose of the dependence graph
-                dependence_graph.build_transpose_graph()
-                dependence_graph.save_as_dot("lab3_transpose_dependence_graph.dot")
+                dg = dependence_graph.reverse_graph()
+                dg.save_as_dot("lab3_reverse_dependence_graph.dot")
 
                 # Step 4: Calculate priorities for each operation (using the original graph, if needed)
-                dependence_graph.calculate_priorities()
+                dg.calculate_priorities()
                 
                 # Step 4: Schedule the instructions
                 # scheduler = Scheduler(dependence_graph)

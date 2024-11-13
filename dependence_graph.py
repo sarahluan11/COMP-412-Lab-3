@@ -6,9 +6,7 @@ class Node:
             instruction (ILOCNode): The instruction this node represents.
         """
         self.instruction = instruction
-        self.dependencies = []  
         self.priority = 0   
-
 
 class DependenceGraph:
     def __init__(self, ir):
@@ -20,13 +18,10 @@ class DependenceGraph:
         self.ir = ir
         self.nodes = []  
         self.edges = {}  
-        
     
     def build_graph(self):
         # Maps each VR to the latest node that defines it
         last_def = {}  
-        # Maps each VR to the latest node that uses it
-        last_use = {}  
 
         # Track all previous memory operations (store, output)
         last_memory_ops = []
@@ -40,25 +35,14 @@ class DependenceGraph:
             # Get the virtual registers defined and used by the current instruction
             defs = self.get_defs(current_instruction)
             uses = self.get_uses(current_instruction)
+            
+            if len(defs) > 0:
+                last_def[defs[0]] = node
 
             # 1. Handle regular dependencies
             for vr in uses:
                 if vr in last_def:
-                    if current_instruction.opcode not in ["store"]:
-                        self.add_edge(node, last_def[vr], "data", vr)
-
-                if vr in last_use:
-                    if current_instruction.opcode == "store":
-                        self.add_edge(node, last_use[vr], "data", vr)
-
-                last_use[vr] = node
-
-            for vr in defs:
-                if vr in last_def:
-                    if current_instruction.opcode == "store" and last_def[vr].instruction.opcode == "store":
-                        self.add_edge(node, last_def[vr], "data", vr)
-
-                last_def[vr] = node
+                   self.add_edge(node, last_def[vr], "data", vr)
 
             # 2. Handle conflict edges (RAW)
             if current_instruction.opcode in ["load", "output"]:
@@ -84,15 +68,31 @@ class DependenceGraph:
 
             # Move to the next instruction in the IR linked list
             current_instruction = current_instruction.next
+    
+    def reverse_graph(self):
+        """
+        Reverse the direction of all edges in the dependence graph.
+        """
+        ir = self.ir
+        res = DependenceGraph(ir)
+        res.nodes = self.nodes
 
-        # Debug output: Print all nodes and their dependencies
-        for i, node in enumerate(self.nodes):
-            dep_list = [(self.nodes.index(dep_node) + 1, dep_type) for dep_node, dep_type in node.dependencies]
-            print(f"Node {i + 1} ({node.instruction.opcode}): Dependencies -> {dep_list}")
+        # Initialize a new dictionary to hold reversed edges
+        reversed_edges = {node: [] for node in self.nodes}
+
+        # Iterate over each node and its dependencies
+        for from_node in self.nodes:
+            for to_node, dep_info in self.edges[from_node]:
+                # Reverse the edge direction
+                reversed_edges[to_node].append((from_node, dep_info))
+
+        # Replace the original edges with the reversed edges
+        res.edges = reversed_edges
+
+        return res
 
     def add_edge(self, from_node, to_node, dep_type, vr):
         label = f"{dep_type}, vr{vr}" if vr is not None else dep_type
-        from_node.dependencies.append((to_node, label))
         self.edges[from_node].append((to_node, label))
 
     def get_defs(self, instruction):
@@ -118,11 +118,16 @@ class DependenceGraph:
         Returns:
             list: A list of registers used by the instruction.
         """
+        if instruction.opcode == 'output':
+            return []
+        
         uses = []
         if instruction.arg1:
             uses.append(instruction.arg1.vr)
         if instruction.arg2:
             uses.append(instruction.arg2.vr)
+        if instruction.arg3 and instruction.opcode == 'store':
+            uses.append(instruction.arg3.vr)
         return uses
 
     def calculate_priorities(self):
@@ -134,7 +139,7 @@ class DependenceGraph:
         for node in reversed(self.nodes): 
             # Start with a base priority
             node.priority = 1
-            for dep, _ in node.dependencies:
+            for dep, _ in self.edges[node]:
                 # Latency-weighted depth
                 node.priority = max(node.priority, dep.priority + 1) 
 
@@ -189,7 +194,7 @@ class DependenceGraph:
             
             # Add edges with dependency type and register labels
             for node in self.nodes:
-                for dep_node, dep_info in node.dependencies:
+                for dep_node, dep_info in self.edges[node]:
                     f.write(f'    "{id(node)}" -> "{id(dep_node)}" [label="{dep_info}"];\n')
             
             f.write("}\n")
