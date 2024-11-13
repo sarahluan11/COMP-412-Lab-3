@@ -6,7 +6,7 @@ class Node:
             instruction (ILOCNode): The instruction this node represents.
         """
         self.instruction = instruction
-        self.priority = 0   
+        self.priority = 0
 
 class DependenceGraph:
     def __init__(self, ir):
@@ -135,15 +135,60 @@ class DependenceGraph:
         Calculate the priority for each node based on dependencies.
         The priority helps guide the scheduler to optimize execution order.
         """
-         # Reverse order for latency-weighted distance
-        for node in reversed(self.nodes): 
-            # Start with a base priority
-            node.priority = 1
-            for dep, _ in self.edges[node]:
-                # Latency-weighted depth
-                node.priority = max(node.priority, dep.priority + 1) 
+        # Set operation latencies
+        latencies = {
+            'load': 6,
+            'store': 6,
+            'mult': 3
+        }
 
-    
+        # Initialize incoming edges count to find root nodes
+        incoming_count = {node: 0 for node in self.nodes}
+        for from_node in self.nodes:
+            for to_node, _ in self.edges[from_node]:
+                incoming_count[to_node] += 1
+        
+        # Identify root nodes (nodes with no incoming edges)
+        root_nodes = [node for node in self.nodes if incoming_count[node] == 0]
+        
+        # Calculate the max latency-weighted path for each node starting from root nodes
+        def max_latency_path(node):
+            # Memoize result to avoid recomputation
+            if hasattr(node, 'max_latency'):  
+                return node.max_latency
+
+            # Get the latency for this operation, defaulting to 1 if not specified
+            latency = latencies.get(node.instruction.opcode, 1)
+            # Start with the latency of the current node
+            max_path = latency  
+
+            # Calculate latency-weighted path for each incoming edge and take the max
+            for from_node, _ in [(n, info) for n in self.nodes for dep, info in self.edges[n] if dep == node]:
+                max_path = max(max_path, max_latency_path(from_node) + latency)
+
+            # Store result in node attribute for memoization
+            node.max_latency = max_path  
+            return max_path
+
+        # Compute max latency-weighted path for each node
+        for node in self.nodes:
+            max_latency_path(node)
+
+        for node in self.nodes:
+            node.priority = node.max_latency
+
+        # For debugging
+        # for i, node in enumerate(self.nodes):
+        #     print(f"Node {i + 1} ({node.instruction.opcode}): Latency Priority -> {node.priority}")
+
+    def leaf_nodes(self):
+        leaves = []
+        for node in self.nodes:
+            # Check if the node has no outgoing edges
+            if not self.edges[node]: 
+                leaves.append(node)
+        return leaves
+
     def save_as_dot(self, filename="dependence_graph.dot"):
         """
         Save the dependence graph in Graphviz .dot format for visualization.
