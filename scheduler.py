@@ -1,98 +1,92 @@
 class Scheduler:
     def __init__(self, dependence_graph):
-        """
-        Initializes the Scheduler with a dependence graph.
-        Args:
-            dependence_graph (DependenceGraph): The dependence graph to be scheduled.
-        """
         self.graph = dependence_graph
-        # Start the scheduling at cycle 1
-        self.cycle = 1
-        # Initialize ready set to the leaf nodes
-        self.ready = set(self.graph.leaf_nodes())
-        # Set that is currently being executed but not completed
-        self.active = set()
-        # List to store the final schedule in (cycle, operation) format
-        self.schedule = []
+        # Current cycle
+        self.cycle = 1  
+        # Operations ready to execute
+        self.ready = set(self.graph.leaf_nodes())  
+        # Operations currently executing
+        self.active = set()  
+        # Final schedule
+        self.schedule = []  
 
     def schedule_operations(self):
         """
-        Main scheduling function. This function iterates through cycles, 
-        moving operations from the ready set to the active set, and updates the cycle count.
-        Returns:
-            list: The complete schedule as a list of tuples (cycle, operation).
+        Schedule operations based on the dependence graph, allowing two instructions per cycle.
         """
-        # Continues looping while either Ready or Active isn't empty
         while self.ready or self.active:
-            # Schedule the highest priority operation from Ready to Active
-            if self.ready:
-                op = max(self.ready, key=lambda node: node.priority)
-                self.ready.remove(op)
-                # Track start cycle
-                self.active.add((op, self.cycle))  
-                # Add to final schedule
-                self.schedule.append((self.cycle, op.instruction))  
-            
-            # Increment cycle and check for completion in Active
+            instructions_this_cycle = []
+
+            # Schedule up to two instructions per cycle
+            for _ in range(2):
+                if self.ready:
+                    op = max(self.ready, key=lambda node: node.priority)
+                    self.ready.remove(op)
+                    self.active.add((op, self.cycle))
+                    instructions_this_cycle.append(op.instruction)
+
+            # Record the scheduled instructions
+            if instructions_this_cycle:
+                self.schedule.append((self.cycle, instructions_this_cycle))
+
+            # Increment cycle and update sets
             self.cycle += 1
-            # Check and remove completed operations
             self.update_active()
-            # Add any newly available operations to Ready
             self.update_ready()
 
         return self.schedule
 
+
     def update_active(self):
         """
-        Updates the Active set by checking if any operations have completed.
-        Moves completed operations out of Active.
+        Remove completed operations from the Active set.
         """
-        # Determine completed operations based on their start cycle and latency
         completed = [
             (op, start_cycle) for op, start_cycle in self.active
             if self.cycle - start_cycle >= self.get_latency(op)
         ]
-
-        # Remove completed operations from Active set
         for op, start_cycle in completed:
             self.active.remove((op, start_cycle))
-    
+
     def update_ready(self):
         """
-        Updates the Ready set by adding operations whose dependencies are now satisfied.
-        This is triggered by the completion of operations in Active.
+        Add operations to the Ready set if all dependencies are met.
         """
-        # Check dependencies of each operation in the Active set
         for op, _ in self.active:
-            for dep in self.graph.edges[op]:
-                # If an operation's dependencies are satisfied, add it to Ready
+            for dep, _ in self.graph.edges[op]:
                 if self.is_ready(dep):
                     self.ready.add(dep)
 
+
     def get_latency(self, node):
         """
-        Returns the execution latency for a given operation node.
-        Args:
-            node (Node): The operation node to get the latency for.
-        Returns:
-            int: The latency for the operation type.
+        Get the latency for an operation.
         """
-        # Return the latency for the operation, defaulting to 1 if not specified
-        latencies = {'load': 6, 'store': 6, 'mult': 3}
+        latencies = {'load': 6, 'store': 6, 'mult': 3, 'add': 1, 'loadI': 1, 'output': 1}
         return latencies.get(node.instruction.opcode, 1)
 
     def is_ready(self, node):
         """
-        Checks if all dependencies for a given node have been satisfied.
-        This means that each of its dependencies is either completed or active.
-        Args:
-            node (Node): The node to check readiness for.
-        Returns:
-            bool: True if all dependencies are satisfied, False otherwise.
+        Check if all dependencies for a node are met.
         """
-        # Check all dependencies for the node in the dependence graph
+        completed_nodes = {op for op, _ in self.active}.union(
+            {op for op, _ in self.schedule}
+        )
         for dep, _ in self.graph.edges[node]:
-            # If any dependency is not yet completed, the node is not ready
-            if dep not in self.completed:
+            if dep not in completed_nodes:
                 return False
         return True
+    
+    def format_schedule(self):
+        """
+        Format the schedule for output, matching the reference format.
+        """
+        formatted_schedule = []
+        for cycle, instructions in self.schedule:
+            if len(instructions) == 1:
+                formatted_schedule.append(f"[ {instructions[0]} ; nop ]")
+            elif len(instructions) == 2:
+                formatted_schedule.append(f"[ {instructions[0]} ; {instructions[1]} ]")
+            else:
+                formatted_schedule.append("[ nop ; nop ]")  # Default for empty cycles
+        return formatted_schedule

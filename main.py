@@ -158,9 +158,12 @@ def main():
                 # Step 4: Schedule the instructions
                 scheduler = Scheduler(dependence_graph)
                 schedule = scheduler.schedule_operations()
+                # Format the schedule into reference-style output
+                formatted_schedule = scheduler.format_schedule()
 
-                for cycle, instruction in schedule:
-                    print(f"Cycle {cycle}: {instruction}")
+                # Print the formatted schedule
+                for cycle_output in formatted_schedule:
+                    print(cycle_output)
             
             # If no valid flag or number of registers is provided, show an error
             else:
