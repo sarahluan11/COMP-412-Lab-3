@@ -1,6 +1,7 @@
 class Scheduler:
-    def __init__(self, dependence_graph):
+    def __init__(self, dependence_graph, rev_graph):
         self.graph = dependence_graph
+        self.rev_graph = rev_graph
         # Current cycle
         self.cycle = 1  
         # Operations ready to execute
@@ -101,14 +102,13 @@ class Scheduler:
             node.status = 4  
 
             # Check successors in the reverse graph
-            for potential_successor in self.graph.nodes:
-                for parent, _ in self.graph.edges[potential_successor]:
-                    if parent == node:
-                        # Check if all parents of the successor are retired
-                        if all(dep.status == 4 for dep, _ in self.graph.edges[potential_successor]):
-                            # Mark as ready
-                            potential_successor.status = 2  
-                            self.ready.add(potential_successor)
+            for parent, _ in self.rev_graph.edges[node]:
+                if parent.status == 1:
+                    # Check if all parents of the successor are retired
+                    if all(dep.status == 4 for dep, _ in self.graph.edges[parent]):
+                        # Mark as ready
+                        parent.status = 2  
+                        self.ready.add(parent)
 
     def get_latency(self, node):
         """
