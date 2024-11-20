@@ -1,0 +1,29 @@
+Autotimer: using Scalability SLOCs blocks
+5 trials at each block size
+=======================================================================
+Testing submission: sl163.tar
+
+***	Tar archive has more than 5 levels of subdirectories.
+	May indicate a poorly constructed archive.
+NetId: sl163	Name: Sarah Luan
+Name: Sarah Luan, NetID: sl163, Date from files:  2024-11-20
+=== built executable; should be ready to run ===
+
+Testing Scalability:
+
+	T001k.i:  	0.0782 seconds
+	T002k.i:  	0.1206 seconds
+	T004k.i:  	0.2062 seconds
+	T008k.i:  	0.3825 seconds
+	T016k.i:  	0.7829 seconds
+	T032k.i:  	1.6024 seconds
+	T064k.i:  	3.3355 seconds
+	T128k.i:  	6.8138 seconds
+
+Scaling points: 	15.0 / 15
+Efficiency points: 	15.0 / 15  (python , 6.814)
+
+finished timing run on submission sl163.tar
+=======================================================================
+
+Timing run complete.

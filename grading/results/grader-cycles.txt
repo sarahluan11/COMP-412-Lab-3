@@ -2,4 +2,4 @@ Shows cycle counts for student lab by each test file
 Import into Excel with tab separators
 
 NetID	Name	T001k.i	report01.i	report02.i	report03.i	report04.i	report05.i	report06.i	report07.i	report08.i	report09.i	report10.i	report11.i	report12.i	report13.i	report14.i	report15.i	report16.i	report17.i	report18.i	report19.i	report20.i	report21.i	report22.i	report23.i
-sl163.tar (*)	missing	506	42	25	28	54	99	141	86	22	46	91	91	32	35	26	70	98	28	33	39	78	78	55	78
+sl163	Sarah Luan	518	42	25	28	55	99	150	91	23	47	92	92	33	35	26	75	103	29	36	44	79	85	62	83

@@ -1,0 +1,54 @@
+COMP 412, Lab3, Autograder
+--------------------------
+
+The Lab 3 autograder does not measure running time.
+Use the autotimer instead.
+
+Correcness and Effectiveness points are based on the
+standard that 90% of the reference implementation receives
+full credit.
+
+... Gathering cycle counts from lab3_ref ...
+ 
+================================================================
+
+***	Tar archive has more than 5 levels of subdirectories.
+	May indicate a poorly constructed archive.
+Testing submission: sl163.tar
+Name: Sarah Luan, NetId: sl163, Date from files:  2024-11-20
+--- built executable; should be ready to run ---
+
+File		Lab	Ref	Difference
+------------------------------------------
+T001k.i		518	506	12
+report01.i	42	26	16
+report02.i	25	25	0
+report03.i	28	28	0
+report04.i	55	37	18
+report05.i	99	27	72
+report06.i	150	47	103
+report07.i	91	39	52
+report08.i	23	16	7
+report09.i	47	30	17
+report10.i	92	41	51
+report11.i	92	31	61
+report12.i	33	23	10
+report13.i	35	29	6
+report14.i	26	22	4
+report15.i	75	26	49
+report16.i	103	58	45
+report17.i	29	23	6
+report18.i	36	25	11
+report19.i	44	41	3
+report20.i	79	24	55
+report21.i	85	74	11
+report22.i	62	54	8
+report23.i	83	71	12
+
+
+	Correctness points:   40.0 / 40	
+	Effectiveness points: 20.45 / 30
+
+================================================================
+
+Grading run complete

@@ -2,4 +2,4 @@ Total points for correctness, efficiency, and conformance
 Import into Excel with tab separators
 
 NetID	Name	Correctness	Effectiveness	Conformance	Days Late
-sl163.tar (*)	missing	40.0	21.56	-10	5
+sl163	Sarah Luan	40.0	20.45	0	5
