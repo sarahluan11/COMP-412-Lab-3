@@ -1,0 +1,4 @@
+Import into Excel with tab separators
+
+NetID	Name	Efficiency Pts	Scalability Pts
+sl163	missing	0.0	0.0

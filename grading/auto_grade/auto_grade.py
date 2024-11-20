@@ -21,7 +21,7 @@ import operator
 ## CONFIGURATION SETTINGS
 
 # base name must end with a slash ("/")
-base_name = "/NEED-TO-SET-base_name-IN-auto_grade/auto_grade.py/"
+base_name = "/storage-home/s/sl163/comp412_lab3/grading/"
 
 # The on-time due date for the assignment
 normal_deadline = date(2023,10,1)  # set annually

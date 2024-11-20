@@ -20,7 +20,7 @@ PRODUCTION = False
 # base_name contains the path to the directory where this file tree is installed
 # It should be one level above the directory that holds this code.
 
-base_name = "/NEED-TO-SET-base_name-IN-auto_time/auto_time.py/"
+base_name = "/storage-home/s/sl163/comp412_lab3/grading/"
 
 # Locations for test blocks (blocks) and timing blocks (timing)
 # These are relative to the directory in base_name

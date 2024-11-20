@@ -245,4 +245,3 @@ class DependenceGraph:
                     f.write(f'    "{id(node)}" -> "{id(dep_node)}" [label="{dep_info}"];\n')
             
             f.write("}\n")
-        print(f"Dependence graph saved as {filename}")

@@ -109,6 +109,10 @@ def main():
                 print("Parsing failed. Errors found:", file=sys.stderr)
                 print("\n".join(errors), file=sys.stderr)
                 sys.exit(1)
+            
+            # Default to '-d' if no valid flag is provided
+            if flag is None:
+                flag = '-d'
 
             # If '-r' flag is used, print the IR
             if flag == '-r':

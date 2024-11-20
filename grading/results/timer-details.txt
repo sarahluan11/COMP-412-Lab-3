@@ -1,0 +1,4 @@
+Import into Excel with tab separators
+
+NetId	Name	T1k	T2k	T4k	T8k	T16k	T32k	T64k	T128k	Lang.	Scaling Pts	Eff Pts %
+sl163	missing	0.9115	2.4258	7.3391	23.923	60.005	7.0766	15.119	33.992	python 	 unusual (?)	0.0	0.0	*

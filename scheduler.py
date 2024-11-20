@@ -41,19 +41,39 @@ class Scheduler:
         return self.schedule
     
     def select_operations(self):
-        scheduled_types = {'load': 0, 'store': 0, 'mult': 0}
+        """
+        Select up to two operations from the ready set that satisfy the constraints:
+        - No two loads in one cycle
+        - No two stores in one cycle
+        - No two mults in one cycle
+        - No load and store in the same cycle
+        """
+        load_selected = False
+        store_selected = False
+        mult_selected = False
+
         selected_ops = []
 
-        for node in self.ready:
+        for node in sorted(self.ready, key=lambda n: n.priority, reverse=True):
             opcode = node.instruction.opcode
 
-            if opcode in scheduled_types and scheduled_types[opcode] >= 1:
-                continue
+            if opcode == 'load':
+                if load_selected or store_selected:  
+                    continue
+                load_selected = True
+            elif opcode == 'store':
+                if store_selected or load_selected: 
+                    continue
+                store_selected = True
+            elif opcode == 'mult':
+                if mult_selected: 
+                    continue
+                mult_selected = True
+            else:
+                pass
 
             selected_ops.append(node)
-            if opcode in scheduled_types:
-                scheduled_types[opcode] += 1
- 
+   
             if len(selected_ops) == 2:
                 break
 
@@ -75,15 +95,10 @@ class Scheduler:
         ]
 
         for node, retire_cycle in completed:
-            # DEBUG
-            # print(f"Completing {node.instruction} at cycle {self.cycle}")
             
             self.active.remove((node, retire_cycle))
             # Mark as retired once removed from Active
             node.status = 4  
-
-            # DEBUG
-            # print(f"  {node.instruction} (Status changed to {node.status})")
 
             # Check successors in the reverse graph
             for potential_successor in self.graph.nodes:
@@ -94,9 +109,6 @@ class Scheduler:
                             # Mark as ready
                             potential_successor.status = 2  
                             self.ready.add(potential_successor)
-
-                            # DEBUG
-                            # print(f"  {potential_successor.instruction} added to Ready set (Status changed to {potential_successor.status})")
 
     def get_latency(self, node):
         """
