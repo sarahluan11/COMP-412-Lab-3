@@ -7,6 +7,7 @@ class Node:
         """
         self.instruction = instruction
         self.priority = 0
+        self.status = 1  # 1: not ready, 2: ready, 3: active, 4: retired
 
 class DependenceGraph:
     def __init__(self, ir):
@@ -187,6 +188,7 @@ class DependenceGraph:
             # Check if the node has no outgoing edges
             if not self.edges[node]: 
                 leaves.append(node)
+                node.status = 2
         return leaves
 
     def save_as_dot(self, filename="dependence_graph.dot"):

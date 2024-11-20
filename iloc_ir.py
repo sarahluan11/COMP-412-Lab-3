@@ -79,8 +79,18 @@ class ILOCNode:
         Outputs:
         - A string showing the opcode and its operands formatted nicely.
         """
-        return f"{self.opcode.ljust(8)}{self.format_operand(self.arg1.sr)}, {self.format_operand(self.arg2.sr)}, {self.format_operand(self.arg3.sr)}"
-    
+        if self.opcode == "output":
+            return f"{self.opcode.ljust(8)}{self.arg1.sr if self.arg1 else ''}"
+
+        arg1 = f"r{self.arg1.vr}" if self.arg1 and self.arg1.vr is not None else (self.arg1.sr if self.opcode == "loadI" and self.arg1 else "")
+        arg2 = f"r{self.arg2.vr}" if self.arg2 and self.arg2.vr is not None else ""
+        arg3 = f"r{self.arg3.vr}" if self.arg3 and self.arg3.vr is not None else ""
+
+        if arg3:
+            return f"{self.opcode.ljust(8)}{arg1}, {arg2} => {arg3}"
+        else:
+            return f"{self.opcode.ljust(8)}{arg1}, {arg2}"
+        
     def max_sr(self):
         """
         Determines the maximum source register (sr) used by the node. 

@@ -6,6 +6,10 @@ from iloc_ir import ILOCLinkedList
 from contextlib import redirect_stdout
 import os 
 
+"""
+Lab 3 sim:
+    /clear/courses/comp412/students/lab3/sim
+"""
 # Import dependencies for Lab 3
 from dependence_graph import DependenceGraph
 from scheduler import Scheduler  
