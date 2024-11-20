@@ -17,43 +17,53 @@ class Scheduler:
         while self.ready or self.active:
             instructions_this_cycle = []
 
-            # DEBUG: Ready set at start
-            # print(f"Cycle {self.cycle}: Ready set contains:")
-            # for node in self.ready:
-            #     print(f"  - {node.instruction} (Status: {node.status})")
+            # Select operations for this cycle
+            op1, op2 = self.select_operations()
+            selected_ops = [op for op in (op1, op2) if op is not None]
 
-            # Schedule up to two instructions per cycle
-            for _ in range(2):
-                if self.ready:
-                    # Find operation with max priority
-                    op = max(self.ready, key=lambda node: node.priority)
-                    self.ready.remove(op)
-                    retire_cycle = self.cycle + self.get_latency(op)
-                    self.active.add((op, retire_cycle))
-                    instructions_this_cycle.append(op.instruction)
-                    # Mark as active
-                    op.status = 3  
-
-                    # DEBUG: Switching to Active
-                    # print(f"  Scheduled {op.instruction} (Status changed to {op.status})")
+            for op in selected_ops:
+                retire_cycle = self.cycle + self.get_latency(op)
+                self.active.add((op, retire_cycle))
+                instructions_this_cycle.append(op.instruction)
+                # Mark as active
+                op.status = 3  
 
             # Record the scheduled instructions or add NOP if no instructions were scheduled
             if instructions_this_cycle:
                 self.schedule.append((self.cycle, instructions_this_cycle))
             else:
-                # Add NOP cycle when no instructions are ready to execute
                 self.schedule.append((self.cycle, ["nop", "nop"]))
-
-            # DEBUG: Print the instructions scheduled in this cycle
-            # print(f"Cycle {self.cycle}: Scheduled instructions:")
-            # for inst in instructions_this_cycle:
-            #     print(f"  - {inst}")
 
             # Increment cycle and update sets
             self.cycle += 1
             self.update_active()
 
         return self.schedule
+    
+    def select_operations(self):
+        scheduled_types = {'load': 0, 'store': 0, 'mult': 0}
+        selected_ops = []
+
+        for node in self.ready:
+            opcode = node.instruction.opcode
+
+            if opcode in scheduled_types and scheduled_types[opcode] >= 1:
+                continue
+
+            selected_ops.append(node)
+            if opcode in scheduled_types:
+                scheduled_types[opcode] += 1
+ 
+            if len(selected_ops) == 2:
+                break
+
+        for node in selected_ops:
+            self.ready.remove(node)
+
+        while len(selected_ops) < 2:
+            selected_ops.append(None)
+
+        return tuple(selected_ops)
 
     def update_active(self):
         """
