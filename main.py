@@ -13,7 +13,6 @@ Lab 3 sim:
 # Import dependencies for Lab 3
 from dependence_graph import DependenceGraph
 from scheduler import Scheduler  
-# from scheduler import Scheduler  
 
 # Logging for Lab 2
 def get_log_name(input_path):

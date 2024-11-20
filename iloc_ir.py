@@ -79,17 +79,26 @@ class ILOCNode:
         Outputs:
         - A string showing the opcode and its operands formatted nicely.
         """
-        if self.opcode == "output":
-            return f"{self.opcode.ljust(8)}{self.arg1.sr if self.arg1 else ''}"
+        # Handle argument formatting
+        if self.opcode == "loadI":
+            arg1 = self.arg1.sr if self.arg1 and self.arg1.sr is not None else ""
+        elif self.opcode == "output":
+            arg1 = str(self.arg1.sr) if self.arg1 and self.arg1.sr is not None else ""
+        else:
+            arg1 = f"r{self.arg1.vr}" if self.arg1 and self.arg1.vr is not None else ""
 
-        arg1 = f"r{self.arg1.vr}" if self.arg1 and self.arg1.vr is not None else (self.arg1.sr if self.opcode == "loadI" and self.arg1 else "")
         arg2 = f"r{self.arg2.vr}" if self.arg2 and self.arg2.vr is not None else ""
         arg3 = f"r{self.arg3.vr}" if self.arg3 and self.arg3.vr is not None else ""
 
+        # Format for `=>` when there is a destination register
         if arg3:
-            return f"{self.opcode.ljust(8)}{arg1}, {arg2} => {arg3}"
-        else:
+            return f"{self.opcode.ljust(8)}{arg1}{f', {arg2}' if arg2 else ''} => {arg3}"
+        elif arg2:
             return f"{self.opcode.ljust(8)}{arg1}, {arg2}"
+        elif arg1:
+            return f"{self.opcode.ljust(8)}{arg1}"
+        else:
+            return self.opcode.ljust(8)
         
     def max_sr(self):
         """

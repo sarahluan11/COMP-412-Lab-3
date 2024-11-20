@@ -18,9 +18,9 @@ class Scheduler:
             instructions_this_cycle = []
 
             # DEBUG: Ready set at start
-            print(f"Cycle {self.cycle}: Ready set contains:")
-            for node in self.ready:
-                print(f"  - {node.instruction} (Status: {node.status})")
+            # print(f"Cycle {self.cycle}: Ready set contains:")
+            # for node in self.ready:
+            #     print(f"  - {node.instruction} (Status: {node.status})")
 
             # Schedule up to two instructions per cycle
             for _ in range(2):
@@ -35,25 +35,23 @@ class Scheduler:
                     op.status = 3  
 
                     # DEBUG: Switching to Active
-                    print(f"  Scheduled {op.instruction} (Status changed to {op.status})")
+                    # print(f"  Scheduled {op.instruction} (Status changed to {op.status})")
 
-            # Record scheduled instructions for the current cycle
+            # Record the scheduled instructions or add NOP if no instructions were scheduled
             if instructions_this_cycle:
                 self.schedule.append((self.cycle, instructions_this_cycle))
+            else:
+                # Add NOP cycle when no instructions are ready to execute
+                self.schedule.append((self.cycle, ["nop", "nop"]))
 
             # DEBUG: Print the instructions scheduled in this cycle
-            print(f"Cycle {self.cycle}: Scheduled instructions:")
-            for inst in instructions_this_cycle:
-                print(f"  - {inst}")
+            # print(f"Cycle {self.cycle}: Scheduled instructions:")
+            # for inst in instructions_this_cycle:
+            #     print(f"  - {inst}")
 
             # Increment cycle and update sets
             self.cycle += 1
             self.update_active()
-
-            # # DEBUG: Print active set with status
-            # print(f"Cycle {self.cycle - 1}: Active set contains:")
-            # for op, retire_cycle in self.active:
-            #     print(f"  - {op.instruction} (Status: {op.status})")
 
         return self.schedule
 
@@ -67,11 +65,15 @@ class Scheduler:
         ]
 
         for node, retire_cycle in completed:
-            print(f"Completing {node.instruction} at cycle {self.cycle}")
+            # DEBUG
+            # print(f"Completing {node.instruction} at cycle {self.cycle}")
+            
             self.active.remove((node, retire_cycle))
             # Mark as retired once removed from Active
             node.status = 4  
-            print(f"  {node.instruction} (Status changed to {node.status})")
+
+            # DEBUG
+            # print(f"  {node.instruction} (Status changed to {node.status})")
 
             # Check successors in the reverse graph
             for potential_successor in self.graph.nodes:
@@ -82,7 +84,9 @@ class Scheduler:
                             # Mark as ready
                             potential_successor.status = 2  
                             self.ready.add(potential_successor)
-                            print(f"  {potential_successor.instruction} added to Ready set (Status changed to {potential_successor.status})")
+
+                            # DEBUG
+                            # print(f"  {potential_successor.instruction} added to Ready set (Status changed to {potential_successor.status})")
 
     def get_latency(self, node):
         """
